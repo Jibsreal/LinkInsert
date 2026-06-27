@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Link Preview Generator</title>
+    <title>Media Link Preview - Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -12,44 +12,346 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 70px;
+            --header-height: 70px;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f0f2f5;
             min-height: 100vh;
-            padding: 20px;
             color: #333;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
             color: white;
-            margin-bottom: 40px;
-            padding: 20px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
-        header h1 {
-            font-size: 2.5rem;
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .sidebar-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand {
+            font-size: 1.3rem;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar.collapsed .sidebar-brand {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: -15px;
+            top: 30px;
+            width: 30px;
+            height: 30px;
+            background: var(--primary);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 1001;
+            transition: transform 0.3s;
+        }
+
+        .sidebar-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .sidebar-toggle i {
+            transition: transform 0.3s;
+        }
+
+        .sidebar.collapsed .sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-label {
+            padding: 0 25px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.5);
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            white-space: nowrap;
         }
 
-        header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+        .sidebar.collapsed .menu-label {
+            opacity: 0;
         }
 
-        /* Input Section */
-        .input-section {
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 14px 25px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .menu-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+
+        .menu-item.active {
+            background: linear-gradient(90deg, rgba(102,126,234,0.2) 0%, transparent 100%);
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        .menu-item i {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .menu-item span {
+            transition: opacity 0.3s;
+        }
+
+        .sidebar.collapsed .menu-item span {
+            opacity: 0;
+            width: 0;
+        }
+
+        .menu-badge {
+            margin-left: auto;
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar.collapsed .menu-badge {
+            opacity: 0;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: var(--sidebar-collapsed);
+        }
+
+        /* Top Header */
+        .top-header {
+            height: var(--header-height);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 10px 15px 10px 40px;
+            border: 2px solid #e1e1e1;
+            border-radius: 25px;
+            width: 250px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            width: 300px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f5f5;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .header-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* ========== PAGES ========== */
+        .page {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== DASHBOARD PAGE ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .stat-icon.blue { background: #e3f2fd; color: #2196f3; }
+        .stat-icon.pink { background: #fce4ec; color: #e91e63; }
+        .stat-icon.purple { background: #f3e5f5; color: #9c27b0; }
+        .stat-icon.green { background: #e8f5e9; color: #4caf50; }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .stat-change.up { color: #4caf50; }
+        .stat-change.down { color: #f44336; }
+
+        /* ========== ADD CARD PAGE ========== */
+        .form-section {
             background: white;
             border-radius: 20px;
             padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 700px;
         }
 
         .form-group {
@@ -81,7 +383,7 @@
         select:focus,
         textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
@@ -99,9 +401,9 @@
 
         .template-btn {
             padding: 8px 16px;
-            border: 2px solid #667eea;
+            border: 2px solid var(--primary);
             background: transparent;
-            color: #667eea;
+            color: var(--primary);
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.85rem;
@@ -111,13 +413,13 @@
 
         .template-btn:hover,
         .template-btn.active {
-            background: #667eea;
+            background: var(--primary);
             color: white;
             transform: translateY(-2px);
         }
 
         .add-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
             padding: 15px 40px;
@@ -136,20 +438,46 @@
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
 
-        /* Preview Cards Grid */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
+        /* ========== GRID PAGE ========== */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
-        /* Link Preview Card */
+        .filter-chip {
+            padding: 8px 20px;
+            border-radius: 25px;
+            border: 2px solid #e1e1e1;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .filter-chip:hover,
+        .filter-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        /* Preview Card */
         .preview-card {
             background: white;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
             position: relative;
             cursor: pointer;
@@ -160,14 +488,13 @@
 
         .preview-card:hover {
             transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
         }
 
         .card-badge {
             position: absolute;
             top: 15px;
             right: 15px;
-            background: rgba(0,0,0,0.7);
             color: white;
             padding: 5px 15px;
             border-radius: 20px;
@@ -179,17 +506,17 @@
         }
 
         .card-badge.youtube { background: #ff0000; }
-        .card-badge.instagram { background: #e4405f; }
+        .card-badge.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
         .card-badge.tiktok { background: #000000; }
         .card-badge.twitter { background: #1da1f2; }
-        .card-badge.other { background: #667eea; }
+        .card-badge.other { background: var(--primary); }
 
         .thumbnail-container {
             position: relative;
             width: 100%;
             height: 200px;
             overflow: hidden;
-            background: #f0f0f0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .thumbnail {
@@ -201,6 +528,30 @@
 
         .preview-card:hover .thumbnail {
             transform: scale(1.1);
+        }
+
+        .thumbnail-fallback {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            gap: 10px;
+        }
+
+        .thumbnail-fallback i {
+            font-size: 3rem;
+            opacity: 0.8;
+        }
+
+        .thumbnail-fallback span {
+            font-size: 0.9rem;
+            opacity: 0.7;
         }
 
         .play-overlay {
@@ -251,7 +602,7 @@
 
         .card-template {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             padding: 4px 12px;
             border-radius: 15px;
@@ -291,7 +642,7 @@
         }
 
         .meta-tag i {
-            color: #667eea;
+            color: var(--primary);
             font-size: 0.9rem;
         }
 
@@ -311,13 +662,13 @@
         .instagram-icon { color: #e4405f; }
         .tiktok-icon { color: #000; }
         .twitter-icon { color: #1da1f2; }
-        .link-icon { color: #667eea; }
+        .link-icon { color: var(--primary); }
 
         .click-hint {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #667eea;
+            color: var(--primary);
             font-weight: 600;
             font-size: 0.9rem;
             transition: all 0.3s ease;
@@ -327,21 +678,6 @@
             gap: 12px;
         }
 
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: white;
-            opacity: 0.8;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-
-        /* Delete Button */
         .delete-btn {
             position: absolute;
             top: 15px;
@@ -372,7 +708,181 @@
             transform: scale(1.1);
         }
 
-        /* Redirect Page Styles */
+        /* ========== LIST VIEW ========== */
+        .list-view {
+            display: none;
+        }
+
+        .list-view.active {
+            display: block;
+        }
+
+        .list-item {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 25px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .list-item:hover {
+            transform: translateX(10px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .list-thumb {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+
+        .list-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            color: #222;
+        }
+
+        .list-meta {
+            display: flex;
+            gap: 15px;
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .list-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .list-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .list-btn.view { background: #e3f2fd; color: #2196f3; }
+        .list-btn.delete { background: #ffebee; color: #f44336; }
+
+        .list-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* ========== SETTINGS PAGE ========== */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .settings-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .settings-card h3 {
+            margin-bottom: 20px;
+            color: #222;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info h4 {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .setting-info p {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* Toggle Switch */
+        .toggle {
+            width: 50px;
+            height: 26px;
+            background: #ddd;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle.active {
+            background: var(--primary);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .toggle.active::after {
+            transform: translateX(24px);
+        }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #aaa;
+        }
+
+        .empty-state i {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h2 {
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        /* ========== REDIRECT OVERLAY ========== */
         .redirect-overlay {
             display: none;
             position: fixed;
@@ -380,7 +890,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             z-index: 9999;
             justify-content: center;
             align-items: center;
@@ -390,11 +900,6 @@
 
         .redirect-overlay.active {
             display: flex;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
 
         .redirect-content {
@@ -462,8 +967,11 @@
             height: 100%;
             background: white;
             border-radius: 2px;
-            animation: progress 2s ease forwards;
             width: 0%;
+        }
+
+        .redirect-progress-bar.animating {
+            animation: progress 2s ease forwards;
         }
 
         @keyframes progress {
@@ -484,22 +992,7 @@
             opacity: 1;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            header h1 {
-                font-size: 1.8rem;
-            }
-
-            .redirect-title {
-                font-size: 1.5rem;
-            }
-        }
-
-        /* Toast Notification */
+        /* ========== TOAST ========== */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -519,11 +1012,359 @@
             transform: translateY(0);
             opacity: 1;
         }
+
+        /* ========== VIEW TOGGLE ========== */
+        .view-toggle {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .view-btn {
+            padding: 10px 15px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            color: #888;
+            transition: all 0.3s;
+        }
+
+        .view-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-box input {
+                width: 150px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Redirect Overlay Page -->
+    <!-- ========== SIDEBAR ========== -->
+    <nav class="sidebar" id="sidebar">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-link"></i>
+            </div>
+            <div class="sidebar-brand">LinkPreview</div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="menu-label">Main</div>
+            <a class="menu-item active" onclick="navigateTo('dashboard')">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a class="menu-item" onclick="navigateTo('add')">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add New</span>
+            </a>
+            <a class="menu-item" onclick="navigateTo('grid')">
+                <i class="fas fa-th-large"></i>
+                <span>Grid View</span>
+                <span class="menu-badge" id="gridBadge">0</span>
+            </a>
+            <a class="menu-item" onclick="navigateTo('list')">
+                <i class="fas fa-list"></i>
+                <span>List View</span>
+            </a>
+            
+            <div class="menu-label" style="margin-top: 20px;">Settings</div>
+            <a class="menu-item" onclick="navigateTo('settings')">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content" id="mainContent">
+
+        <!-- Top Header -->
+        <header class="top-header">
+            <h2 class="page-title" id="pageTitle">Dashboard</h2>
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search links..." id="searchInput" oninput="searchCards()">
+                </div>
+                <button class="header-btn" onclick="navigateTo('add')" title="Add New">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="header-btn" onclick="toggleSidebar()" title="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- ========== DASHBOARD PAGE ========== -->
+        <div class="page active" id="page-dashboard">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value" id="statTotal">0</div>
+                            <div class="stat-label">Total Links</div>
+                        </div>
+                        <div class="stat-icon blue">
+                            <i class="fas fa-link"></i>
+                        </div>
+                    </div>
+                    <div class="stat-change up">
+                        <i class="fas fa-arrow-up"></i> All time
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value" id="statYouTube">0</div>
+                            <div class="stat-label">YouTube</div>
+                        </div>
+                        <div class="stat-icon pink">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                    </div>
+                    <div class="stat-change up">
+                        <i class="fas fa-play"></i> Videos
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value" id="statInstagram">0</div>
+                            <div class="stat-label">Instagram</div>
+                        </div>
+                        <div class="stat-icon purple">
+                            <i class="fab fa-instagram"></i>
+                        </div>
+                    </div>
+                    <div class="stat-change up">
+                        <i class="fas fa-image"></i> Posts
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value" id="statTikTok">0</div>
+                            <div class="stat-label">TikTok</div>
+                        </div>
+                        <div class="stat-icon green">
+                            <i class="fab fa-tiktok"></i>
+                        </div>
+                    </div>
+                    <div class="stat-change up">
+                        <i class="fas fa-music"></i> Shorts
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 20px; color: #222;">Recent Links</h3>
+            <div id="dashboardRecent" class="cards-grid"></div>
+        </div>
+
+        <!-- ========== ADD PAGE ========== -->
+        <div class="page" id="page-add">
+            <div class="form-section">
+                <h2 style="margin-bottom: 25px; color: #222;">
+                    <i class="fas fa-plus-circle" style="color: var(--primary);"></i> Add New Link
+                </h2>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-globe"></i> Media URL</label>
+                    <input type="url" id="urlInput" placeholder="https://www.youtube.com/watch?v=... or https://www.instagram.com/p/..." required>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-heading"></i> Template</label>
+                    <div class="template-buttons">
+                        <button class="template-btn active" onclick="setTemplate('VIDEO -> JAPAN')">VIDEO → JAPAN</button>
+                        <button class="template-btn" onclick="setTemplate('TUTORIAL -> EDITING')">TUTORIAL → EDITING</button>
+                        <button class="template-btn" onclick="setTemplate('LOCATION -> TOKYO')">LOCATION → TOKYO</button>
+                        <button class="template-btn" onclick="setTemplate('PREVIEW -> TRAVEL')">PREVIEW → TRAVEL</button>
+                        <button class="template-btn" onclick="setTemplate('BTS -> SHOOTING')">BTS → SHOOTING</button>
+                        <button class="template-btn" onclick="setTemplate('CUSTOM')">CUSTOM</button>
+                    </div>
+                    <input type="text" id="templateInput" value="VIDEO -> JAPAN" placeholder="VIDEO -> JAPAN">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-align-left"></i> Description</label>
+                    <textarea id="descInput" placeholder="Enter description..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-tags"></i> Tags (comma separated)</label>
+                    <input type="text" id="tagsInput" placeholder="travel, japan, vlog, 2024">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-image"></i> Custom Thumbnail URL (optional)</label>
+                    <input type="url" id="thumbInput" placeholder="Leave empty to auto-detect">
+                    <p style="font-size: 0.8rem; color: #888; margin-top: 5px;">
+                        <i class="fas fa-info-circle"></i> For IG/TikTok, paste direct image URL if auto-detect fails
+                    </p>
+                </div>
+
+                <button class="add-btn" onclick="addCard()">
+                    <i class="fas fa-plus-circle"></i> Generate Preview Card
+                </button>
+            </div>
+        </div>
+
+        <!-- ========== GRID PAGE ========== -->
+        <div class="page" id="page-grid">
+            <div class="filter-bar">
+                <button class="filter-chip active" onclick="filterCards('all')">All</button>
+                <button class="filter-chip" onclick="filterCards('youtube')">
+                    <i class="fab fa-youtube"></i> YouTube
+                </button>
+                <button class="filter-chip" onclick="filterCards('instagram')">
+                    <i class="fab fa-instagram"></i> Instagram
+                </button>
+                <button class="filter-chip" onclick="filterCards('tiktok')">
+                    <i class="fab fa-tiktok"></i> TikTok
+                </button>
+                <button class="filter-chip" onclick="filterCards('twitter')">
+                    <i class="fab fa-twitter"></i> Twitter
+                </button>
+                <div style="margin-left: auto; display: flex; gap: 10px;">
+                    <div class="view-toggle">
+                        <button class="view-btn active" onclick="switchView('grid')">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button class="view-btn" onclick="switchView('list')">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="gridContainer" class="cards-grid"></div>
+            <div id="gridEmpty" class="empty-state" style="display: none;">
+                <i class="fas fa-photo-video"></i>
+                <h2>No links found</h2>
+                <p>Try a different filter or add new links</p>
+            </div>
+        </div>
+
+        <!-- ========== LIST PAGE ========== -->
+        <div class="page" id="page-list">
+            <div class="filter-bar">
+                <button class="filter-chip active" onclick="filterCards('all')">All</button>
+                <button class="filter-chip" onclick="filterCards('video')">Video</button>
+                <button class="filter-chip" onclick="filterCards('tutorial')">Tutorial</button>
+                <button class="filter-chip" onclick="filterCards('location')">Location</button>
+                <button class="filter-chip" onclick="filterCards('preview')">Preview</button>
+            </div>
+            
+            <div id="listContainer"></div>
+            <div id="listEmpty" class="empty-state" style="display: none;">
+                <i class="fas fa-list"></i>
+                <h2>No links found</h2>
+                <p>Try a different filter or add new links</p>
+            </div>
+        </div>
+
+        <!-- ========== SETTINGS PAGE ========== -->
+        <div class="page" id="page-settings">
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h3><i class="fas fa-sliders-h" style="color: var(--primary);"></i> General</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Auto-redirect</h4>
+                            <p>Skip the branded redirect page</p>
+                        </div>
+                        <div class="toggle" id="toggleRedirect" onclick="toggleSetting(this, 'autoRedirect')"></div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Dark Mode</h4>
+                            <p>Switch to dark theme</p>
+                        </div>
+                        <div class="toggle" id="toggleDark" onclick="toggleSetting(this, 'darkMode')"></div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Compact View</h4>
+                            <p>Smaller cards with less padding</p>
+                        </div>
+                        <div class="toggle" id="toggleCompact" onclick="toggleSetting(this, 'compactView')"></div>
+                    </div>
+                </div>
+                
+                <div class="settings-card">
+                    <h3><i class="fas fa-database" style="color: var(--primary);"></i> Data</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Export Data</h4>
+                            <p>Download all links as JSON</p>
+                        </div>
+                        <button class="header-btn" onclick="exportData()" style="width: auto; padding: 8px 20px; border-radius: 8px;">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Import Data</h4>
+                            <p>Load links from JSON file</p>
+                        </div>
+                        <button class="header-btn" onclick="document.getElementById('importFile').click()" style="width: auto; padding: 8px 20px; border-radius: 8px;">
+                            <i class="fas fa-upload"></i> Import
+                        </button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(this)">
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Clear All</h4>
+                            <p>Delete all saved links permanently</p>
+                        </div>
+                        <button class="header-btn" onclick="clearAllData()" style="width: auto; padding: 8px 20px; border-radius: 8px; background: #ffebee; color: #f44336;">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========== REDIRECT OVERLAY ========== -->
     <div id="redirectOverlay" class="redirect-overlay">
         <div class="redirect-content">
             <div class="redirect-logo">
@@ -547,93 +1388,120 @@
         </div>
     </div>
 
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-link"></i> Media Link Preview</h1>
-            <p>Create beautiful, clickable preview cards for your content</p>
-        </header>
-
-        <div class="input-section">
-            <div class="form-group">
-                <label><i class="fas fa-globe"></i> Media URL (YouTube, Instagram, TikTok, etc.)</label>
-                <input type="url" id="urlInput" placeholder="https://www.youtube.com/watch?v=... or https://www.instagram.com/p/..." required>
-            </div>
-
-            <div class="form-group">
-                <label><i class="fas fa-heading"></i> Title / Description Template</label>
-                <div class="template-buttons">
-                    <button class="template-btn active" onclick="setTemplate('VIDEO -> JAPAN')">VIDEO -> JAPAN</button>
-                    <button class="template-btn" onclick="setTemplate('TUTORIAL -> EDITING')">TUTORIAL -> EDITING</button>
-                    <button class="template-btn" onclick="setTemplate('LOCATION -> TOKYO')">LOCATION -> TOKYO</button>
-                    <button class="template-btn" onclick="setTemplate('PREVIEW -> TRAVEL')">PREVIEW -> TRAVEL</button>
-                    <button class="template-btn" onclick="setTemplate('BTS -> SHOOTING')">BTS -> SHOOTING</button>
-                    <button class="template-btn" onclick="setTemplate('CUSTOM')">CUSTOM</button>
-                </div>
-                <input type="text" id="templateInput" value="VIDEO -> JAPAN" placeholder="VIDEO -> JAPAN">
-            </div>
-
-            <div class="form-group">
-                <label><i class="fas fa-align-left"></i> Description</label>
-                <textarea id="descInput" placeholder="Enter description... (e.g., 'Amazing travel vlog exploring hidden spots in Kyoto')"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label><i class="fas fa-tags"></i> Tags (comma separated)</label>
-                <input type="text" id="tagsInput" placeholder="travel, japan, vlog, 2024">
-            </div>
-
-            <div class="form-group">
-                <label><i class="fas fa-image"></i> Custom Thumbnail URL (optional)</label>
-                <input type="url" id="thumbInput" placeholder="Leave empty to auto-detect from link">
-            </div>
-
-            <button class="add-btn" onclick="addCard()">
-                <i class="fas fa-plus-circle"></i> Generate Preview Card
-            </button>
-        </div>
-
-        <div id="cardsContainer" class="cards-grid">
-            <!-- Cards will appear here -->
-        </div>
-
-        <div id="emptyState" class="empty-state">
-            <i class="fas fa-photo-video"></i>
-            <h2>No previews yet</h2>
-            <p>Add your first media link above to generate a preview card</p>
-        </div>
-    </div>
-
-    <div id="toast" class="toast">Card added successfully!</div>
+    <!-- ========== TOAST ========== -->
+    <div id="toast" class="toast">Notification</div>
 
     <script>
-        // Template presets
-        const templates = {
-            'VIDEO -> JAPAN': { type: 'video', category: 'JAPAN', icon: 'fa-video' },
-            'TUTORIAL -> EDITING': { type: 'tutorial', category: 'EDITING', icon: 'fa-graduation-cap' },
-            'LOCATION -> TOKYO': { type: 'location', category: 'TOKYO', icon: 'fa-map-marker-alt' },
-            'PREVIEW -> TRAVEL': { type: 'preview', category: 'TRAVEL', icon: 'fa-eye' },
-            'BTS -> SHOOTING': { type: 'bts', category: 'SHOOTING', icon: 'fa-camera' }
-        };
-
+        // ========== STATE ==========
         let cards = JSON.parse(localStorage.getItem('mediaCards')) || [];
+        let currentFilter = 'all';
+        let currentView = 'grid';
         let redirectTimer = null;
         let targetUrl = '';
+        let settings = JSON.parse(localStorage.getItem('linkPreviewSettings')) || {
+            autoRedirect: false,
+            darkMode: false,
+            compactView: false
+        };
 
-        // Initialize
+        // ========== INIT ==========
         document.addEventListener('DOMContentLoaded', () => {
-            renderCards();
+            loadSettings();
+            updateStats();
+            renderAll();
+            updateBadge();
         });
 
-        function setTemplate(template) {
-            document.querySelectorAll('.template-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+        // ========== NAVIGATION ==========
+        function navigateTo(page) {
+            // Update sidebar
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
             
-            if (template === 'CUSTOM') {
-                document.getElementById('templateInput').value = '';
-                document.getElementById('templateInput').focus();
-            } else {
-                document.getElementById('templateInput').value = template;
+            // Update pages
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(`page-${page}`).classList.add('active');
+            
+            // Update title
+            const titles = {
+                'dashboard': 'Dashboard',
+                'add': 'Add New Link',
+                'grid': 'Grid View',
+                'list': 'List View',
+                'settings': 'Settings'
+            };
+            document.getElementById('pageTitle').textContent = titles[page];
+            
+            // Refresh content
+            if (page === 'grid' || page === 'list') {
+                renderAll();
             }
+            if (page === 'dashboard') {
+                updateStats();
+                renderDashboardRecent();
+            }
+            
+            // Close sidebar on mobile
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('open');
+            }
+        }
+
+        // ========== THUMBNAIL FETCHING ==========
+        function getThumbnail(url, platform, customThumb) {
+            if (customThumb) return customThumb;
+
+            if (platform === 'youtube') {
+                const videoId = extractYouTubeID(url);
+                if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+            }
+            
+            if (platform === 'instagram') {
+                // Try to extract shortcode and use ddinstagram proxy
+                const shortcode = extractInstagramShortcode(url);
+                if (shortcode) {
+                    return `https://www.ddinstagram.com/p/${shortcode}/media/?size=l`;
+                }
+                // Fallback: use platform-specific placeholder with gradient
+                return null;
+            }
+            
+            if (platform === 'tiktok') {
+                // TikTok doesn't allow easy thumbnail extraction
+                // Use a proxy service or return null for fallback
+                const videoId = extractTikTokID(url);
+                if (videoId) {
+                    // Try tiktok's oembed or return null for fallback
+                    return null;
+                }
+            }
+            
+            return null;
+        }
+
+        function extractYouTubeID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function extractInstagramShortcode(url) {
+            const match = url.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
+            return match ? match[1] : null;
+        }
+
+        function extractTikTokID(url) {
+            const match = url.match(/tiktok\.com\/@[\w.]+\/video\/(\d+)/);
+            return match ? match[1] : null;
         }
 
         function detectPlatform(url) {
@@ -642,6 +1510,119 @@
             if (url.includes('tiktok.com')) return 'tiktok';
             if (url.includes('twitter.com') || url.includes('x.com')) return 'twitter';
             return 'other';
+        }
+
+        // ========== CARD RENDERING ==========
+        function renderCard(card, view = 'grid') {
+            const [type, category] = card.template.split('->').map(s => s.trim());
+            const platformIcon = getPlatformIcon(card.platform);
+            const platformBadge = getPlatformBadge(card.platform);
+            const isVideo = card.platform === 'youtube' || card.platform === 'tiktok';
+            const safeUrl = card.url.replace(/'/g, "\\'").replace(/"/g, '\\"');
+            
+            // Determine thumbnail HTML
+            let thumbnailHtml;
+            if (card.thumbnail) {
+                thumbnailHtml = `<img src="${card.thumbnail}" alt="${card.template}" class="thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" loading="lazy">`;
+            } else {
+                thumbnailHtml = `<img src="" alt="" class="thumbnail" style="display:none;" onerror="this.style.display='none';">`;
+            }
+            
+            // Fallback content based on platform
+            const fallbackIcons = {
+                'youtube': 'fab fa-youtube',
+                'instagram': 'fab fa-instagram',
+                'tiktok': 'fab fa-tiktok',
+                'twitter': 'fab fa-twitter',
+                'other': 'fas fa-link'
+            };
+            
+            const fallbackHtml = `
+                <div class="thumbnail-fallback" style="${card.thumbnail ? 'display:none;' : ''}">
+                    <i class="${fallbackIcons[card.platform] || 'fas fa-link'}"></i>
+                    <span>${platformBadge}</span>
+                </div>
+            `;
+
+            if (view === 'list') {
+                return `
+                    <div class="list-item" onclick="goToRedirect('${safeUrl}')">
+                        <div style="position: relative; width: 80px; height: 80px; flex-shrink: 0;">
+                            ${thumbnailHtml}
+                            ${fallbackHtml}
+                        </div>
+                        <div class="list-info">
+                            <div class="list-title">${escapeHtml(card.description) || 'Untitled'}</div>
+                            <div class="list-meta">
+                                <span><i class="${platformIcon}"></i> ${platformBadge}</span>
+                                <span><i class="fas fa-tag"></i> ${escapeHtml(type)} → ${escapeHtml(category)}</span>
+                                <span><i class="fas fa-calendar"></i> ${card.date}</span>
+                            </div>
+                        </div>
+                        <div class="list-actions">
+                            <button class="list-btn view" onclick="event.stopPropagation(); goToRedirect('${safeUrl}')">
+                                <i class="fas fa-external-link-alt"></i>
+                            </button>
+                            <button class="list-btn delete" onclick="event.stopPropagation(); deleteCard(${card.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="preview-card" onclick="goToRedirect('${safeUrl}')" data-id="${card.id}">
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteCard(${card.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    
+                    <div class="card-badge ${card.platform}">${platformBadge}</div>
+                    
+                    <div class="thumbnail-container">
+                        ${thumbnailHtml}
+                        ${fallbackHtml}
+                        ${isVideo ? `
+                            <div class="play-overlay">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="card-content">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">${escapeHtml(card.description) || 'Untitled Content'}</div>
+                                <span class="card-template">${escapeHtml(type)} → ${escapeHtml(category)}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-description">
+                            ${escapeHtml(card.description) || 'Click to view this content'}
+                        </div>
+                        
+                        <div class="card-meta">
+                            ${card.tags.map(tag => `
+                                <span class="meta-tag">
+                                    <i class="fas fa-hashtag"></i>
+                                    ${escapeHtml(tag)}
+                                </span>
+                            `).join('')}
+                            <span class="meta-tag">
+                                <i class="fas fa-calendar"></i>
+                                ${card.date}
+                            </span>
+                        </div>
+                        
+                        <div class="card-footer">
+                            <i class="${platformIcon} platform-icon"></i>
+                            <span class="click-hint">
+                                Click to view <i class="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         function getPlatformIcon(platform) {
@@ -659,90 +1640,126 @@
             return platform.charAt(0).toUpperCase() + platform.slice(1);
         }
 
-        function extractYouTubeID(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
-        }
-
-        function getThumbnail(url, platform) {
-            const customThumb = document.getElementById('thumbInput').value;
-            if (customThumb) return customThumb;
-
-            if (platform === 'youtube') {
-                const videoId = extractYouTubeID(url);
-                if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        // ========== RENDER ALL VIEWS ==========
+        function renderAll() {
+            const filtered = getFilteredCards();
+            
+            // Grid
+            const gridContainer = document.getElementById('gridContainer');
+            const gridEmpty = document.getElementById('gridEmpty');
+            if (filtered.length === 0) {
+                gridContainer.innerHTML = '';
+                gridEmpty.style.display = 'block';
+            } else {
+                gridContainer.innerHTML = filtered.map(c => renderCard(c, 'grid')).join('');
+                gridEmpty.style.display = 'none';
             }
             
-            return `https://via.placeholder.com/640x360/667eea/ffffff?text=${platform.toUpperCase()}`;
+            // List
+            const listContainer = document.getElementById('listContainer');
+            const listEmpty = document.getElementById('listEmpty');
+            if (filtered.length === 0) {
+                listContainer.innerHTML = '';
+                listEmpty.style.display = 'block';
+            } else {
+                listContainer.innerHTML = filtered.map(c => renderCard(c, 'list')).join('');
+                listEmpty.style.display = 'none';
+            }
+            
+            // Dashboard recent
+            renderDashboardRecent();
         }
 
-        // FIXED REDIRECT FUNCTIONALITY for GitHub Pages
-        function goToRedirect(url) {
-            targetUrl = url;
-            const overlay = document.getElementById('redirectOverlay');
-            const urlDisplay = document.getElementById('redirectUrl');
-            const progressBar = document.getElementById('progressBar');
-            
-            // Reset progress bar animation
-            progressBar.style.animation = 'none';
-            progressBar.offsetHeight; // Trigger reflow
-            progressBar.style.animation = 'progress 2s ease forwards';
-            
-            // Show overlay
-            urlDisplay.textContent = url;
-            overlay.classList.add('active');
-            
-            // FIXED: Use window.location.assign for same-tab or window.open with proper URL
-            redirectTimer = setTimeout(() => {
-                // Method 1: Open in new tab (most reliable on GitHub Pages)
-                const newWindow = window.open(targetUrl, '_blank');
-                
-                // Fallback if popup blocked
-                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-                    window.location.href = targetUrl;
-                }
-                
-                overlay.classList.remove('active');
-            }, 2000);
+        function renderDashboardRecent() {
+            const container = document.getElementById('dashboardRecent');
+            const recent = cards.slice(0, 3);
+            if (recent.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1; padding: 40px;">
+                        <i class="fas fa-plus-circle"></i>
+                        <h2>No links yet</h2>
+                        <p>Add your first link to see it here</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = recent.map(c => renderCard(c, 'grid')).join('');
+            }
         }
 
-        function skipRedirect() {
-            if (redirectTimer) {
-                clearTimeout(redirectTimer);
+        function getFilteredCards() {
+            if (currentFilter === 'all') return cards;
+            return cards.filter(c => c.platform === currentFilter || c.template.toLowerCase().includes(currentFilter));
+        }
+
+        // ========== FILTER & VIEW ==========
+        function filterCards(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderAll();
+        }
+
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            if (view === 'grid') {
+                document.getElementById('gridContainer').style.display = 'grid';
+                document.getElementById('listContainer').style.display = 'none';
+            } else {
+                document.getElementById('gridContainer').style.display = 'none';
+                document.getElementById('listContainer').style.display = 'block';
             }
-            if (targetUrl) {
-                const newWindow = window.open(targetUrl, '_blank');
-                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-                    window.location.href = targetUrl;
-                }
+        }
+
+        function searchCards() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = cards.filter(c => 
+                c.description.toLowerCase().includes(query) ||
+                c.template.toLowerCase().includes(query) ||
+                c.tags.some(t => t.toLowerCase().includes(query))
+            );
+            
+            const gridContainer = document.getElementById('gridContainer');
+            gridContainer.innerHTML = filtered.map(c => renderCard(c, 'grid')).join('');
+        }
+
+        // ========== ADD CARD ==========
+        function setTemplate(template) {
+            document.querySelectorAll('.template-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (template === 'CUSTOM') {
+                document.getElementById('templateInput').value = '';
+                document.getElementById('templateInput').focus();
+            } else {
+                document.getElementById('templateInput').value = template;
             }
-            document.getElementById('redirectOverlay').classList.remove('active');
         }
 
         function addCard() {
-            const url = document.getElementById('urlInput').value.trim();
+            let url = document.getElementById('urlInput').value.trim();
             const template = document.getElementById('templateInput').value;
             const description = document.getElementById('descInput').value;
             const tags = document.getElementById('tagsInput').value;
+            const customThumb = document.getElementById('thumbInput').value.trim();
 
             if (!url) {
                 showToast('Please enter a URL!', 'error');
                 return;
             }
 
-            // Ensure URL has protocol
-            let finalUrl = url;
             if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                finalUrl = 'https://' + url;
+                url = 'https://' + url;
             }
 
-            const platform = detectPlatform(finalUrl);
-            const thumbnail = getThumbnail(finalUrl, platform);
+            const platform = detectPlatform(url);
+            const thumbnail = getThumbnail(url, platform, customThumb) || customThumb;
             
             const card = {
                 id: Date.now(),
-                url: finalUrl,
+                url,
                 template,
                 description,
                 tags: tags.split(',').map(t => t.trim()).filter(t => t),
@@ -753,22 +1770,29 @@
 
             cards.unshift(card);
             saveCards();
-            renderCards();
+            updateStats();
+            updateBadge();
+            
             clearForm();
             showToast('Preview card created successfully!');
+            
+            // Switch to grid view to see the new card
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.menu-item')[2].classList.add('active'); // Grid menu item
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-grid').classList.add('active');
+            document.getElementById('pageTitle').textContent = 'Grid View';
+            renderAll();
         }
 
-        function deleteCard(id, event) {
-            event.preventDefault();
-            event.stopPropagation();
+        function deleteCard(id) {
+            if (!confirm('Delete this link?')) return;
             cards = cards.filter(c => c.id !== id);
             saveCards();
-            renderCards();
+            updateStats();
+            updateBadge();
+            renderAll();
             showToast('Card deleted');
-        }
-
-        function saveCards() {
-            localStorage.setItem('mediaCards', JSON.stringify(cards));
         }
 
         function clearForm() {
@@ -778,83 +1802,128 @@
             document.getElementById('thumbInput').value = '';
         }
 
-        function renderCards() {
-            const container = document.getElementById('cardsContainer');
-            const emptyState = document.getElementById('emptyState');
-
-            if (cards.length === 0) {
-                container.style.display = 'none';
-                emptyState.style.display = 'block';
-                return;
-            }
-
-            container.style.display = 'grid';
-            emptyState.style.display = 'none';
-
-            container.innerHTML = cards.map(card => {
-                const [type, category] = card.template.split('->').map(s => s.trim());
-                const platformIcon = getPlatformIcon(card.platform);
-                const platformBadge = getPlatformBadge(card.platform);
-                const isVideo = card.platform === 'youtube' || card.platform === 'tiktok';
-
-                // Escape URL for onclick to prevent XSS and encoding issues
-                const safeUrl = card.url.replace(/'/g, "\\'").replace(/"/g, '\\"');
-
-                return `
-                    <div class="preview-card" onclick="goToRedirect('${safeUrl}')" data-id="${card.id}">
-                        <button class="delete-btn" onclick="deleteCard(${card.id}, event)">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                        
-                        <div class="card-badge ${card.platform}">${platformBadge}</div>
-                        
-                        <div class="thumbnail-container">
-                            <img src="${card.thumbnail}" alt="${card.template}" class="thumbnail" onerror="this.src='https://via.placeholder.com/640x360/667eea/ffffff?text=${card.platform}'" loading="lazy">
-                            ${isVideo ? `
-                                <div class="play-overlay">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        <div class="card-content">
-                            <div class="card-header">
-                                <div>
-                                    <div class="card-title">${escapeHtml(card.description) || 'Untitled Content'}</div>
-                                    <span class="card-template">${escapeHtml(type)} → ${escapeHtml(category)}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="card-description">
-                                ${escapeHtml(card.description) || 'Click to view this content'}
-                            </div>
-                            
-                            <div class="card-meta">
-                                ${card.tags.map(tag => `
-                                    <span class="meta-tag">
-                                        <i class="fas fa-hashtag"></i>
-                                        ${escapeHtml(tag)}
-                                    </span>
-                                `).join('')}
-                                <span class="meta-tag">
-                                    <i class="fas fa-calendar"></i>
-                                    ${card.date}
-                                </span>
-                            </div>
-                            
-                            <div class="card-footer">
-                                <i class="${platformIcon} platform-icon"></i>
-                                <span class="click-hint">
-                                    Click to view <i class="fas fa-arrow-right"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+        // ========== STATS ==========
+        function updateStats() {
+            document.getElementById('statTotal').textContent = cards.length;
+            document.getElementById('statYouTube').textContent = cards.filter(c => c.platform === 'youtube').length;
+            document.getElementById('statInstagram').textContent = cards.filter(c => c.platform === 'instagram').length;
+            document.getElementById('statTikTok').textContent = cards.filter(c => c.platform === 'tiktok').length;
         }
 
-        // Escape HTML to prevent XSS
+        function updateBadge() {
+            document.getElementById('gridBadge').textContent = cards.length;
+        }
+
+        // ========== REDIRECT ==========
+        function goToRedirect(url) {
+            if (settings.autoRedirect) {
+                window.open(url, '_blank');
+                return;
+            }
+            
+            targetUrl = url;
+            const overlay = document.getElementById('redirectOverlay');
+            const urlDisplay = document.getElementById('redirectUrl');
+            const progressBar = document.getElementById('progressBar');
+            
+            progressBar.classList.remove('animating');
+            void progressBar.offsetWidth;
+            progressBar.classList.add('animating');
+            
+            urlDisplay.textContent = url;
+            overlay.classList.add('active');
+            
+            redirectTimer = setTimeout(() => {
+                const newWindow = window.open(targetUrl, '_blank');
+                if (!newWindow || newWindow.closed) {
+                    window.location.href = targetUrl;
+                }
+                overlay.classList.remove('active');
+            }, 2000);
+        }
+
+        function skipRedirect() {
+            if (redirectTimer) clearTimeout(redirectTimer);
+            if (targetUrl) {
+                const newWindow = window.open(targetUrl, '_blank');
+                if (!newWindow || newWindow.closed) {
+                    window.location.href = targetUrl;
+                }
+            }
+            document.getElementById('redirectOverlay').classList.remove('active');
+        }
+
+        // ========== SETTINGS ==========
+        function loadSettings() {
+            if (settings.autoRedirect) {
+                document.getElementById('toggleRedirect').classList.add('active');
+            }
+            if (settings.darkMode) {
+                document.getElementById('toggleDark').classList.add('active');
+            }
+            if (settings.compactView) {
+                document.getElementById('toggleCompact').classList.add('active');
+            }
+        }
+
+        function toggleSetting(element, key) {
+            element.classList.toggle('active');
+            settings[key] = element.classList.contains('active');
+            localStorage.setItem('linkPreviewSettings', JSON.stringify(settings));
+            showToast(`${key} ${settings[key] ? 'enabled' : 'disabled'}`);
+        }
+
+        function exportData() {
+            const data = JSON.stringify(cards, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'link-preview-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Data exported!');
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (Array.isArray(data)) {
+                        cards = data;
+                        saveCards();
+                        updateStats();
+                        updateBadge();
+                        renderAll();
+                        showToast('Data imported successfully!');
+                    }
+                } catch (err) {
+                    showToast('Invalid JSON file!', 'error');
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        function clearAllData() {
+            if (!confirm('Are you sure? This will delete ALL links permanently!')) return;
+            cards = [];
+            saveCards();
+            updateStats();
+            updateBadge();
+            renderAll();
+            showToast('All data cleared');
+        }
+
+        // ========== UTILS ==========
+        function saveCards() {
+            localStorage.setItem('mediaCards', JSON.stringify(cards));
+        }
+
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -870,9 +1939,12 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // Allow Enter key to add card
-        document.getElementById('urlInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addCard();
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
         });
     </script>
 
