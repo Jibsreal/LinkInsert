@@ -538,7 +538,7 @@
             </div>
             
             <div class="redirect-progress">
-                <div class="redirect-progress-bar"></div>
+                <div class="redirect-progress-bar" id="progressBar"></div>
             </div>
             
             <div class="redirect-skip" onclick="skipRedirect()">
@@ -617,6 +617,7 @@
 
         let cards = JSON.parse(localStorage.getItem('mediaCards')) || [];
         let redirectTimer = null;
+        let targetUrl = '';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -676,18 +677,32 @@
             return `https://via.placeholder.com/640x360/667eea/ffffff?text=${platform.toUpperCase()}`;
         }
 
-        // REDIRECT FUNCTIONALITY
+        // FIXED REDIRECT FUNCTIONALITY for GitHub Pages
         function goToRedirect(url) {
+            targetUrl = url;
             const overlay = document.getElementById('redirectOverlay');
             const urlDisplay = document.getElementById('redirectUrl');
+            const progressBar = document.getElementById('progressBar');
+            
+            // Reset progress bar animation
+            progressBar.style.animation = 'none';
+            progressBar.offsetHeight; // Trigger reflow
+            progressBar.style.animation = 'progress 2s ease forwards';
             
             // Show overlay
             urlDisplay.textContent = url;
             overlay.classList.add('active');
             
-            // Redirect after 2 seconds
+            // FIXED: Use window.location.assign for same-tab or window.open with proper URL
             redirectTimer = setTimeout(() => {
-                window.open(url, '_blank');
+                // Method 1: Open in new tab (most reliable on GitHub Pages)
+                const newWindow = window.open(targetUrl, '_blank');
+                
+                // Fallback if popup blocked
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    window.location.href = targetUrl;
+                }
+                
                 overlay.classList.remove('active');
             }, 2000);
         }
@@ -696,15 +711,17 @@
             if (redirectTimer) {
                 clearTimeout(redirectTimer);
             }
-            const url = document.getElementById('redirectUrl').textContent;
-            if (url && url !== 'https://...') {
-                window.open(url, '_blank');
+            if (targetUrl) {
+                const newWindow = window.open(targetUrl, '_blank');
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    window.location.href = targetUrl;
+                }
             }
             document.getElementById('redirectOverlay').classList.remove('active');
         }
 
         function addCard() {
-            const url = document.getElementById('urlInput').value;
+            const url = document.getElementById('urlInput').value.trim();
             const template = document.getElementById('templateInput').value;
             const description = document.getElementById('descInput').value;
             const tags = document.getElementById('tagsInput').value;
@@ -714,12 +731,18 @@
                 return;
             }
 
-            const platform = detectPlatform(url);
-            const thumbnail = getThumbnail(url, platform);
+            // Ensure URL has protocol
+            let finalUrl = url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                finalUrl = 'https://' + url;
+            }
+
+            const platform = detectPlatform(finalUrl);
+            const thumbnail = getThumbnail(finalUrl, platform);
             
             const card = {
                 id: Date.now(),
-                url,
+                url: finalUrl,
                 template,
                 description,
                 tags: tags.split(',').map(t => t.trim()).filter(t => t),
@@ -774,9 +797,11 @@
                 const platformBadge = getPlatformBadge(card.platform);
                 const isVideo = card.platform === 'youtube' || card.platform === 'tiktok';
 
-                // Use onclick instead of href for redirect page
+                // Escape URL for onclick to prevent XSS and encoding issues
+                const safeUrl = card.url.replace(/'/g, "\\'").replace(/"/g, '\\"');
+
                 return `
-                    <div class="preview-card" onclick="goToRedirect('${card.url}')" data-id="${card.id}">
+                    <div class="preview-card" onclick="goToRedirect('${safeUrl}')" data-id="${card.id}">
                         <button class="delete-btn" onclick="deleteCard(${card.id}, event)">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -784,7 +809,7 @@
                         <div class="card-badge ${card.platform}">${platformBadge}</div>
                         
                         <div class="thumbnail-container">
-                            <img src="${card.thumbnail}" alt="${card.template}" class="thumbnail" onerror="this.src='https://via.placeholder.com/640x360/667eea/ffffff?text=${card.platform}'">
+                            <img src="${card.thumbnail}" alt="${card.template}" class="thumbnail" onerror="this.src='https://via.placeholder.com/640x360/667eea/ffffff?text=${card.platform}'" loading="lazy">
                             ${isVideo ? `
                                 <div class="play-overlay">
                                     <i class="fas fa-play"></i>
@@ -795,20 +820,20 @@
                         <div class="card-content">
                             <div class="card-header">
                                 <div>
-                                    <div class="card-title">${card.description || 'Untitled Content'}</div>
-                                    <span class="card-template">${type} → ${category}</span>
+                                    <div class="card-title">${escapeHtml(card.description) || 'Untitled Content'}</div>
+                                    <span class="card-template">${escapeHtml(type)} → ${escapeHtml(category)}</span>
                                 </div>
                             </div>
                             
                             <div class="card-description">
-                                ${card.description || 'Click to view this content'}
+                                ${escapeHtml(card.description) || 'Click to view this content'}
                             </div>
                             
                             <div class="card-meta">
                                 ${card.tags.map(tag => `
                                     <span class="meta-tag">
                                         <i class="fas fa-hashtag"></i>
-                                        ${tag}
+                                        ${escapeHtml(tag)}
                                     </span>
                                 `).join('')}
                                 <span class="meta-tag">
@@ -827,6 +852,14 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function showToast(message, type = 'success') {
