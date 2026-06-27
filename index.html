@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Link Preview Generator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Input Section */
+        .input-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .template-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .template-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .template-btn:hover,
+        .template-btn.active {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Preview Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        /* Link Preview Card */
+        .preview-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .preview-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-badge.youtube { background: #ff0000; }
+        .card-badge.instagram { background: #e4405f; }
+        .card-badge.tiktok { background: #000000; }
+        .card-badge.twitter { background: #1da1f2; }
+        .card-badge.other { background: #667eea; }
+
+        .thumbnail-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            background: #f0f0f0;
+        }
+
+        .thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .preview-card:hover .thumbnail {
+            transform: scale(1.1);
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .play-overlay i {
+            color: #ff0000;
+            font-size: 1.5rem;
+            margin-left: 4px;
+        }
+
+        .preview-card:hover .play-overlay {
+            transform: translate(-50%, -50%) scale(1.2);
+            background: white;
+        }
+
+        .card-content {
+            padding: 25px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #222;
+            line-height: 1.4;
+            margin-bottom: 5px;
+        }
+
+        .card-template {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-description {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .meta-tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .meta-tag i {
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .platform-icon {
+            font-size: 1.5rem;
+        }
+
+        .youtube-icon { color: #ff0000; }
+        .instagram-icon { color: #e4405f; }
+        .tiktok-icon { color: #000; }
+        .twitter-icon { color: #1da1f2; }
+        .link-icon { color: #667eea; }
+
+        .click-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .preview-card:hover .click-hint {
+            gap: 12px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+            opacity: 0.8;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Delete Button */
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(255,255,255,0.9);
+            color: #ff4444;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 20;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .preview-card:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            background: #ff4444;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Loading Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-link"></i> Media Link Preview</h1>
+            <p>Create beautiful, clickable preview cards for your content</p>
+        </header>
+
+        <div class="input-section">
+            <div class="form-group">
+                <label><i class="fas fa-globe"></i> Media URL (YouTube, Instagram, TikTok, etc.)</label>
+                <input type="url" id="urlInput" placeholder="https://www.youtube.com/watch?v=... or https://www.instagram.com/p/..." required>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-heading"></i> Title / Description Template</label>
+                <div class="template-buttons">
+                    <button class="template-btn active" onclick="setTemplate('VIDEO -> JAPAN')">VIDEO -> JAPAN</button>
+                    <button class="template-btn" onclick="setTemplate('TUTORIAL -> EDITING')">TUTORIAL -> EDITING</button>
+                    <button class="template-btn" onclick="setTemplate('LOCATION -> TOKYO')">LOCATION -> TOKYO</button>
+                    <button class="template-btn" onclick="setTemplate('PREVIEW -> TRAVEL')">PREVIEW -> TRAVEL</button>
+                    <button class="template-btn" onclick="setTemplate('BTS -> SHOOTING')">BTS -> SHOOTING</button>
+                    <button class="template-btn" onclick="setTemplate('CUSTOM')">CUSTOM</button>
+                </div>
+                <input type="text" id="templateInput" value="VIDEO -> JAPAN" placeholder="VIDEO -> JAPAN">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-align-left"></i> Description</label>
+                <textarea id="descInput" placeholder="Enter description... (e.g., 'Amazing travel vlog exploring hidden spots in Kyoto')"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-tags"></i> Tags (comma separated)</label>
+                <input type="text" id="tagsInput" placeholder="travel, japan, vlog, 2024">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-image"></i> Custom Thumbnail URL (optional)</label>
+                <input type="url" id="thumbInput" placeholder="Leave empty to auto-detect from link">
+            </div>
+
+            <button class="add-btn" onclick="addCard()">
+                <i class="fas fa-plus-circle"></i> Generate Preview Card
+            </button>
+        </div>
+
+        <div id="cardsContainer" class="cards-grid">
+            <!-- Cards will appear here -->
+        </div>
+
+        <div id="emptyState" class="empty-state">
+            <i class="fas fa-photo-video"></i>
+            <h2>No previews yet</h2>
+            <p>Add your first media link above to generate a preview card</p>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Card added successfully!</div>
+
+    <script>
+        // Template presets
+        const templates = {
+            'VIDEO -> JAPAN': { type: 'video', category: 'JAPAN', icon: 'fa-video' },
+            'TUTORIAL -> EDITING': { type: 'tutorial', category: 'EDITING', icon: 'fa-graduation-cap' },
+            'LOCATION -> TOKYO': { type: 'location', category: 'TOKYO', icon: 'fa-map-marker-alt' },
+            'PREVIEW -> TRAVEL': { type: 'preview', category: 'TRAVEL', icon: 'fa-eye' },
+            'BTS -> SHOOTING': { type: 'bts', category: 'SHOOTING', icon: 'fa-camera' }
+        };
+
+        let cards = JSON.parse(localStorage.getItem('mediaCards')) || [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCards();
+        });
+
+        function setTemplate(template) {
+            document.querySelectorAll('.template-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (template === 'CUSTOM') {
+                document.getElementById('templateInput').value = '';
+                document.getElementById('templateInput').focus();
+            } else {
+                document.getElementById('templateInput').value = template;
+            }
+        }
+
+        function detectPlatform(url) {
+            if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+            if (url.includes('instagram.com')) return 'instagram';
+            if (url.includes('tiktok.com')) return 'tiktok';
+            if (url.includes('twitter.com') || url.includes('x.com')) return 'twitter';
+            return 'other';
+        }
+
+        function getPlatformIcon(platform) {
+            const icons = {
+                'youtube': 'fab fa-youtube youtube-icon',
+                'instagram': 'fab fa-instagram instagram-icon',
+                'tiktok': 'fab fa-tiktok tiktok-icon',
+                'twitter': 'fab fa-twitter twitter-icon',
+                'other': 'fas fa-link link-icon'
+            };
+            return icons[platform] || icons['other'];
+        }
+
+        function getPlatformBadge(platform) {
+            return platform.charAt(0).toUpperCase() + platform.slice(1);
+        }
+
+        function extractYouTubeID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function getThumbnail(url, platform) {
+            // If custom thumbnail provided
+            const customThumb = document.getElementById('thumbInput').value;
+            if (customThumb) return customThumb;
+
+            // Auto-detect based on platform
+            if (platform === 'youtube') {
+                const videoId = extractYouTubeID(url);
+                if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+            }
+            
+            // Default placeholder with platform icon
+            return `https://via.placeholder.com/640x360/667eea/ffffff?text=${platform.toUpperCase()}`;
+        }
+
+        function addCard() {
+            const url = document.getElementById('urlInput').value;
+            const template = document.getElementById('templateInput').value;
+            const description = document.getElementById('descInput').value;
+            const tags = document.getElementById('tagsInput').value;
+
+            if (!url) {
+                showToast('Please enter a URL!', 'error');
+                return;
+            }
+
+            const platform = detectPlatform(url);
+            const thumbnail = getThumbnail(url, platform);
+            
+            const card = {
+                id: Date.now(),
+                url,
+                template,
+                description,
+                tags: tags.split(',').map(t => t.trim()).filter(t => t),
+                platform,
+                thumbnail,
+                date: new Date().toLocaleDateString()
+            };
+
+            cards.unshift(card);
+            saveCards();
+            renderCards();
+            clearForm();
+            showToast('Preview card created successfully!');
+        }
+
+        function deleteCard(id, event) {
+            event.preventDefault();
+            event.stopPropagation();
+            cards = cards.filter(c => c.id !== id);
+            saveCards();
+            renderCards();
+            showToast('Card deleted');
+        }
+
+        function saveCards() {
+            localStorage.setItem('mediaCards', JSON.stringify(cards));
+        }
+
+        function clearForm() {
+            document.getElementById('urlInput').value = '';
+            document.getElementById('descInput').value = '';
+            document.getElementById('tagsInput').value = '';
+            document.getElementById('thumbInput').value = '';
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cardsContainer');
+            const emptyState = document.getElementById('emptyState');
+
+            if (cards.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            container.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            container.innerHTML = cards.map(card => {
+                const [type, category] = card.template.split('->').map(s => s.trim());
+                const platformIcon = getPlatformIcon(card.platform);
+                const platformBadge = getPlatformBadge(card.platform);
+                const isVideo = card.platform === 'youtube' || card.platform === 'tiktok';
+
+                return `
+                    <a href="${card.url}" target="_blank" class="preview-card" data-id="${card.id}">
+                        <button class="delete-btn" onclick="deleteCard(${card.id}, event)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        
+                        <div class="card-badge ${card.platform}">${platformBadge}</div>
+                        
+                        <div class="thumbnail-container">
+                            <img src="${card.thumbnail}" alt="${card.template}" class="thumbnail" onerror="this.src='https://via.placeholder.com/640x360/667eea/ffffff?text=${card.platform}'">
+                            ${isVideo ? `
+                                <div class="play-overlay">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title">${card.description || 'Untitled Content'}</div>
+                                    <span class="card-template">${type} → ${category}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-description">
+                                ${card.description || 'Click to view this content'}
+                            </div>
+                            
+                            <div class="card-meta">
+                                ${card.tags.map(tag => `
+                                    <span class="meta-tag">
+                                        <i class="fas fa-hashtag"></i>
+                                        ${tag}
+                                    </span>
+                                `).join('')}
+                                <span class="meta-tag">
+                                    <i class="fas fa-calendar"></i>
+                                    ${card.date}
+                                </span>
+                            </div>
+                            
+                            <div class="card-footer">
+                                <i class="${platformIcon} platform-icon"></i>
+                                <span class="click-hint">
+                                    Click to view <i class="fas fa-arrow-right"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? '#ff4444' : '#333';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Allow Enter key to add card
+        document.getElementById('urlInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addCard();
+        });
+    </script>
+
+</body>
+</html>
