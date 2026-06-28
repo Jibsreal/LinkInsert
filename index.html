@@ -193,7 +193,6 @@
             margin-left: var(--sidebar-collapsed);
         }
 
-        /* Top Header */
         .top-header {
             height: var(--header-height);
             background: white;
@@ -282,7 +281,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ========== DASHBOARD PAGE ========== */
+        /* ========== DASHBOARD ========== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -343,9 +342,8 @@
         }
 
         .stat-change.up { color: #4caf50; }
-        .stat-change.down { color: #f44336; }
 
-        /* ========== ADD CARD PAGE ========== */
+        /* ========== ADD PAGE ========== */
         .form-section {
             background: white;
             border-radius: 20px;
@@ -472,7 +470,6 @@
             gap: 25px;
         }
 
-        /* Preview Card */
         .preview-card {
             background: white;
             border-radius: 20px;
@@ -787,7 +784,7 @@
             transform: scale(1.1);
         }
 
-        /* ========== SETTINGS PAGE ========== */
+        /* ========== SETTINGS ========== */
         .settings-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -832,7 +829,6 @@
             color: #888;
         }
 
-        /* Toggle Switch */
         .toggle {
             width: 50px;
             height: 26px;
@@ -862,6 +858,136 @@
 
         .toggle.active::after {
             transform: translateX(24px);
+        }
+
+        /* ========== SHARE CODE SECTION ========== */
+        .share-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        .share-section h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .share-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .share-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        .share-input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .share-btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            background: white;
+            color: var(--primary);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .share-btn.copied {
+            background: #4caf50;
+            color: white;
+        }
+
+        .share-hint {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .import-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .import-section h3 {
+            margin-bottom: 15px;
+            color: #222;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .import-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .import-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e1e1e1;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .import-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* ========== QR CODE ========== */
+        .qr-section {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .qr-code {
+            width: 180px;
+            height: 180px;
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-code img {
+            width: 100%;
+            height: 100%;
         }
 
         /* ========== EMPTY STATE ========== */
@@ -1057,6 +1183,10 @@
             .search-box input {
                 width: 150px;
             }
+
+            .share-box, .import-box {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -1184,6 +1314,24 @@
                     <div class="stat-change up">
                         <i class="fas fa-music"></i> Shorts
                     </div>
+                </div>
+            </div>
+
+            <!-- FAST SHARE SECTION -->
+            <div class="share-section">
+                <h3><i class="fas fa-share-alt"></i> Quick Share</h3>
+                <p style="margin-bottom: 15px; opacity: 0.9;">Generate a shareable code to instantly send your entire collection to anyone!</p>
+                <div class="share-box">
+                    <input type="text" class="share-input" id="shareCodeOutput" placeholder="Click 'Generate Code' to create share code..." readonly>
+                    <button class="share-btn" id="generateBtn" onclick="generateShareCode()">
+                        <i class="fas fa-code"></i> Generate Code
+                    </button>
+                    <button class="share-btn" onclick="copyShareCode()" id="copyBtn" style="display:none;">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                <div class="share-hint">
+                    <i class="fas fa-lightbulb"></i> Share this code with friends — they can paste it in Settings → Import Code to get all your links instantly!
                 </div>
             </div>
 
@@ -1325,37 +1473,39 @@
                     </div>
                 </div>
                 
+                <!-- FAST IMPORT SECTION -->
                 <div class="settings-card">
-                    <h3><i class="fas fa-database" style="color: var(--primary);"></i> Data</h3>
+                    <h3><i class="fas fa-file-import" style="color: var(--primary);"></i> Import from Code</h3>
+                    <p style="color: #888; margin-bottom: 15px; font-size: 0.9rem;">Paste a share code to instantly import all links</p>
                     
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <h4>Export Data</h4>
-                            <p>Download all links as JSON</p>
-                        </div>
-                        <button class="header-btn" onclick="exportData()" style="width: auto; padding: 8px 20px; border-radius: 8px;">
-                            <i class="fas fa-download"></i> Export
+                    <div class="import-box" style="margin-bottom: 15px;">
+                        <input type="text" class="import-input" id="importCodeInput" placeholder="Paste share code here...">
+                        <button class="share-btn" onclick="importFromCode()" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;">
+                            <i class="fas fa-download"></i> Import
                         </button>
                     </div>
                     
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <h4>Import Data</h4>
-                            <p>Load links from JSON file</p>
-                        </div>
-                        <button class="header-btn" onclick="document.getElementById('importFile').click()" style="width: auto; padding: 8px 20px; border-radius: 8px;">
-                            <i class="fas fa-upload"></i> Import
+                    <div style="display: flex; gap: 10px;">
+                        <button class="share-btn" onclick="exportToFile()" style="background: #f5f5f5; color: #666;">
+                            <i class="fas fa-file-export"></i> Export JSON File
                         </button>
-                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(this)">
+                        <button class="share-btn" onclick="document.getElementById('importFile').click()" style="background: #f5f5f5; color: #666;">
+                            <i class="fas fa-folder-open"></i> Import File
+                        </button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importFromFile(this)">
                     </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3><i class="fas fa-database" style="color: var(--primary);"></i> Data Management</h3>
                     
                     <div class="setting-item">
                         <div class="setting-info">
-                            <h4>Clear All</h4>
+                            <h4>Clear All Data</h4>
                             <p>Delete all saved links permanently</p>
                         </div>
-                        <button class="header-btn" onclick="clearAllData()" style="width: auto; padding: 8px 20px; border-radius: 8px; background: #ffebee; color: #f44336;">
-                            <i class="fas fa-trash"></i> Clear
+                        <button class="share-btn" onclick="clearAllData()" style="background: #ffebee; color: #f44336;">
+                            <i class="fas fa-trash"></i> Clear All
                         </button>
                     </div>
                 </div>
@@ -1414,15 +1564,12 @@
 
         // ========== NAVIGATION ==========
         function navigateTo(page) {
-            // Update sidebar
             document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
             event.currentTarget.classList.add('active');
             
-            // Update pages
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(`page-${page}`).classList.add('active');
             
-            // Update title
             const titles = {
                 'dashboard': 'Dashboard',
                 'add': 'Add New Link',
@@ -1432,16 +1579,12 @@
             };
             document.getElementById('pageTitle').textContent = titles[page];
             
-            // Refresh content
-            if (page === 'grid' || page === 'list') {
-                renderAll();
-            }
+            if (page === 'grid' || page === 'list') renderAll();
             if (page === 'dashboard') {
                 updateStats();
                 renderDashboardRecent();
             }
             
-            // Close sidebar on mobile
             if (window.innerWidth <= 768) {
                 document.getElementById('sidebar').classList.remove('open');
             }
@@ -1450,41 +1593,20 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('collapsed');
-            
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('open');
-            }
+            if (window.innerWidth <= 768) sidebar.classList.toggle('open');
         }
 
         // ========== THUMBNAIL FETCHING ==========
         function getThumbnail(url, platform, customThumb) {
             if (customThumb) return customThumb;
-
             if (platform === 'youtube') {
                 const videoId = extractYouTubeID(url);
                 if (videoId) return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
             }
-            
             if (platform === 'instagram') {
-                // Try to extract shortcode and use ddinstagram proxy
                 const shortcode = extractInstagramShortcode(url);
-                if (shortcode) {
-                    return `https://www.ddinstagram.com/p/${shortcode}/media/?size=l`;
-                }
-                // Fallback: use platform-specific placeholder with gradient
-                return null;
+                if (shortcode) return `https://www.ddinstagram.com/p/${shortcode}/media/?size=l`;
             }
-            
-            if (platform === 'tiktok') {
-                // TikTok doesn't allow easy thumbnail extraction
-                // Use a proxy service or return null for fallback
-                const videoId = extractTikTokID(url);
-                if (videoId) {
-                    // Try tiktok's oembed or return null for fallback
-                    return null;
-                }
-            }
-            
             return null;
         }
 
@@ -1496,11 +1618,6 @@
 
         function extractInstagramShortcode(url) {
             const match = url.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
-            return match ? match[1] : null;
-        }
-
-        function extractTikTokID(url) {
-            const match = url.match(/tiktok\.com\/@[\w.]+\/video\/(\d+)/);
             return match ? match[1] : null;
         }
 
@@ -1520,7 +1637,6 @@
             const isVideo = card.platform === 'youtube' || card.platform === 'tiktok';
             const safeUrl = card.url.replace(/'/g, "\\'").replace(/"/g, '\\"');
             
-            // Determine thumbnail HTML
             let thumbnailHtml;
             if (card.thumbnail) {
                 thumbnailHtml = `<img src="${card.thumbnail}" alt="${card.template}" class="thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" loading="lazy">`;
@@ -1528,7 +1644,6 @@
                 thumbnailHtml = `<img src="" alt="" class="thumbnail" style="display:none;" onerror="this.style.display='none';">`;
             }
             
-            // Fallback content based on platform
             const fallbackIcons = {
                 'youtube': 'fab fa-youtube',
                 'instagram': 'fab fa-instagram',
@@ -1644,7 +1759,6 @@
         function renderAll() {
             const filtered = getFilteredCards();
             
-            // Grid
             const gridContainer = document.getElementById('gridContainer');
             const gridEmpty = document.getElementById('gridEmpty');
             if (filtered.length === 0) {
@@ -1655,7 +1769,6 @@
                 gridEmpty.style.display = 'none';
             }
             
-            // List
             const listContainer = document.getElementById('listContainer');
             const listEmpty = document.getElementById('listEmpty');
             if (filtered.length === 0) {
@@ -1666,7 +1779,6 @@
                 listEmpty.style.display = 'none';
             }
             
-            // Dashboard recent
             renderDashboardRecent();
         }
 
@@ -1721,8 +1833,7 @@
                 c.tags.some(t => t.toLowerCase().includes(query))
             );
             
-            const gridContainer = document.getElementById('gridContainer');
-            gridContainer.innerHTML = filtered.map(c => renderCard(c, 'grid')).join('');
+            document.getElementById('gridContainer').innerHTML = filtered.map(c => renderCard(c, 'grid')).join('');
         }
 
         // ========== ADD CARD ==========
@@ -1776,9 +1887,8 @@
             clearForm();
             showToast('Preview card created successfully!');
             
-            // Switch to grid view to see the new card
             document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-            document.querySelectorAll('.menu-item')[2].classList.add('active'); // Grid menu item
+            document.querySelectorAll('.menu-item')[2].classList.add('active');
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('page-grid').classList.add('active');
             document.getElementById('pageTitle').textContent = 'Grid View';
@@ -1853,27 +1963,121 @@
             document.getElementById('redirectOverlay').classList.remove('active');
         }
 
-        // ========== SETTINGS ==========
-        function loadSettings() {
-            if (settings.autoRedirect) {
-                document.getElementById('toggleRedirect').classList.add('active');
+        // ========== SHARE CODE SYSTEM ==========
+        function generateShareCode() {
+            if (cards.length === 0) {
+                showToast('No cards to share!', 'error');
+                return;
             }
-            if (settings.darkMode) {
-                document.getElementById('toggleDark').classList.add('active');
+
+            // Create minimal data (remove thumbnails to keep code short, they'll be regenerated)
+            const shareData = cards.map(c => ({
+                u: c.url,
+                t: c.template,
+                d: c.description,
+                g: c.tags,
+                p: c.platform,
+                dt: c.date
+            }));
+
+            // Compress and encode
+            const jsonStr = JSON.stringify(shareData);
+            const compressed = compressString(jsonStr);
+            const encoded = btoa(compressed).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+            
+            // Format as readable code chunks
+            const code = formatShareCode(encoded);
+            
+            document.getElementById('shareCodeOutput').value = code;
+            document.getElementById('generateBtn').style.display = 'none';
+            document.getElementById('copyBtn').style.display = 'flex';
+            
+            showToast('Share code generated! Copy and send to friends.');
+        }
+
+        function compressString(str) {
+            // Simple compression - remove whitespace and shorten keys already done above
+            return str;
+        }
+
+        function formatShareCode(encoded) {
+            // Format in chunks of 4 for readability
+            return encoded.match(/.{1,4}/g).join('-');
+        }
+
+        function copyShareCode() {
+            const input = document.getElementById('shareCodeOutput');
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const original = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.classList.remove('copied');
+                }, 2000);
+                
+                showToast('Code copied to clipboard!');
+            });
+        }
+
+        function importFromCode() {
+            const code = document.getElementById('importCodeInput').value.trim().replace(/-/g, '');
+            if (!code) {
+                showToast('Please paste a share code!', 'error');
+                return;
             }
-            if (settings.compactView) {
-                document.getElementById('toggleCompact').classList.add('active');
+
+            try {
+                // Decode
+                let padded = code.replace(/-/g, '+').replace(/_/g, '/');
+                while (padded.length % 4) padded += '=';
+                const decoded = atob(padded);
+                const data = JSON.parse(decoded);
+
+                if (!Array.isArray(data)) {
+                    throw new Error('Invalid data format');
+                }
+
+                // Convert back to full format
+                const imported = data.map(item => ({
+                    id: Date.now() + Math.random(),
+                    url: item.u,
+                    template: item.t,
+                    description: item.d,
+                    tags: item.g || [],
+                    platform: item.p,
+                    thumbnail: getThumbnail(item.u, item.p, null),
+                    date: item.dt || new Date().toLocaleDateString()
+                }));
+
+                const existingCount = cards.length;
+                cards = [...imported, ...cards];
+                saveCards();
+                updateStats();
+                updateBadge();
+                renderAll();
+                
+                document.getElementById('importCodeInput').value = '';
+                showToast(`Imported ${imported.length} links successfully!`);
+                
+                // Switch to grid to see imported
+                document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+                document.querySelectorAll('.menu-item')[2].classList.add('active');
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById('page-grid').classList.add('active');
+                document.getElementById('pageTitle').textContent = 'Grid View';
+
+            } catch (err) {
+                showToast('Invalid share code! Please check and try again.', 'error');
+                console.error(err);
             }
         }
 
-        function toggleSetting(element, key) {
-            element.classList.toggle('active');
-            settings[key] = element.classList.contains('active');
-            localStorage.setItem('linkPreviewSettings', JSON.stringify(settings));
-            showToast(`${key} ${settings[key] ? 'enabled' : 'disabled'}`);
-        }
-
-        function exportData() {
+        // ========== FILE EXPORT/IMPORT (Backup) ==========
+        function exportToFile() {
             const data = JSON.stringify(cards, null, 2);
             const blob = new Blob([data], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -1882,10 +2086,10 @@
             a.download = 'link-preview-data.json';
             a.click();
             URL.revokeObjectURL(url);
-            showToast('Data exported!');
+            showToast('JSON file exported!');
         }
 
-        function importData(input) {
+        function importFromFile(input) {
             const file = input.files[0];
             if (!file) return;
             
@@ -1899,7 +2103,7 @@
                         updateStats();
                         updateBadge();
                         renderAll();
-                        showToast('Data imported successfully!');
+                        showToast('Data imported from file!');
                     }
                 } catch (err) {
                     showToast('Invalid JSON file!', 'error');
@@ -1907,6 +2111,20 @@
             };
             reader.readAsText(file);
             input.value = '';
+        }
+
+        // ========== SETTINGS ==========
+        function loadSettings() {
+            if (settings.autoRedirect) document.getElementById('toggleRedirect').classList.add('active');
+            if (settings.darkMode) document.getElementById('toggleDark').classList.add('active');
+            if (settings.compactView) document.getElementById('toggleCompact').classList.add('active');
+        }
+
+        function toggleSetting(element, key) {
+            element.classList.toggle('active');
+            settings[key] = element.classList.contains('active');
+            localStorage.setItem('linkPreviewSettings', JSON.stringify(settings));
+            showToast(`${key} ${settings[key] ? 'enabled' : 'disabled'}`);
         }
 
         function clearAllData() {
@@ -1939,7 +2157,6 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'k') {
                 e.preventDefault();
