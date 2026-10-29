@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Media Link Preview - Dashboard</title>
+<title>Media Link Preview — Pro Dashboard</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -15,8 +15,14 @@
   --border:#e8ebf2;--shadow:0 6px 24px rgba(31,36,48,.07);
   --shadow-hover:0 18px 50px rgba(0,0,0,.14);
   --radius:16px;--ease:cubic-bezier(.4,0,.2,1);
+  --star:#ffb020;--danger:#ff4757;--success:#2ecc71;
 }
-body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg);min-height:100vh;color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body.dark{
+  --bg:#0f1420;--card:#1a2032;--text:#e6e9f0;--muted:#8a93a8;
+  --border:#2a3348;--shadow:0 6px 24px rgba(0,0,0,.4);
+  --shadow-hover:0 18px 50px rgba(0,0,0,.6);
+}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg);min-height:100vh;color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .3s,color .3s}
 
 /* ===== SIDEBAR ===== */
 .sidebar{position:fixed;inset:0 auto 0 0;width:var(--sidebar-width);height:100vh;background:linear-gradient(180deg,#1a1a2e,#16213e);color:#fff;transition:width .3s var(--ease),transform .3s var(--ease);z-index:1000;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}
@@ -42,15 +48,16 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg
 .sidebar.collapsed .menu-item span{opacity:0;width:0;overflow:hidden;display:inline-block}
 .menu-badge{margin-left:auto;background:var(--primary);color:#fff;padding:1px 8px;border-radius:10px;font-size:.72rem;font-weight:700;transition:transform .2s}
 .sidebar.collapsed .menu-badge{opacity:0;width:0;overflow:hidden}
-.folder-list{padding:0 12px;display:flex;flex-direction:column;gap:4px}
-.folder-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:rgba(255,255,255,.7);cursor:pointer;font-size:.88rem;transition:.2s var(--ease);white-space:nowrap;overflow:hidden}
+.folder-list{padding:0 12px;display:flex;flex-direction:column;gap:4px;min-height:20px}
+.folder-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:rgba(255,255,255,.7);cursor:pointer;font-size:.88rem;transition:.2s var(--ease);white-space:nowrap;overflow:hidden;position:relative}
 .folder-item:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateX(2px)}
 .folder-item.active{background:rgba(102,126,234,.25);color:#fff}
-.folder-item i.fa-folder{width:18px;text-align:center;color:#ffd166;font-size:.85rem;flex-shrink:0}
+.folder-item.drag-over{background:rgba(102,126,234,.45);border:2px dashed #aab6ff}
+.folder-item .folder-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 8px currentColor}
 .folder-item .folder-name{flex:1;overflow:hidden;text-overflow:ellipsis}
 .folder-item .folder-count{font-size:.72rem;background:rgba(255,255,255,.15);padding:1px 7px;border-radius:8px}
 .folder-item .folder-del{color:rgba(255,255,255,.35);font-size:.7rem;margin-left:4px;padding:3px;border-radius:6px;transition:.2s}
-.folder-item .folder-del:hover{color:#fff;background:#ff4757}
+.folder-item .folder-del:hover{color:#fff;background:var(--danger)}
 .sidebar.collapsed .folder-list,.sidebar.collapsed .folder-add-btn{display:none}
 .folder-add-btn{margin:8px 12px 0;padding:8px 12px;border:1px dashed rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.6);border-radius:10px;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:8px;transition:.2s var(--ease)}
 .folder-add-btn:hover{border-color:var(--primary);color:#fff;background:rgba(102,126,234,.15)}
@@ -59,14 +66,15 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg
 .main-content{margin-left:var(--sidebar-width);transition:margin-left .3s var(--ease);min-height:100vh}
 .sidebar.collapsed ~ .main-content{margin-left:var(--sidebar-collapsed)}
 .top-header{height:var(--header-height);background:rgba(255,255,255,.95);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;padding:0 28px;box-shadow:0 1px 6px rgba(0,0,0,.04);position:sticky;top:0;z-index:100;gap:16px}
+body.dark .top-header{background:rgba(26,32,50,.95)}
 .page-title{font-size:1.35rem;font-weight:700;transition:opacity .2s}
 .header-actions{display:flex;align-items:center;gap:12px}
 .search-box{position:relative}
-.search-box input{padding:10px 16px 10px 40px;border:2px solid var(--border);border-radius:25px;width:240px;font-size:.9rem;transition:all .25s var(--ease);background:#fafbfd}
-.search-box input:focus{outline:none;border-color:var(--primary);width:300px;background:#fff;box-shadow:0 0 0 4px rgba(102,126,234,.1)}
-.search-box i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:#a0a6b5;transition:color .2s}
-.search-box input:focus + i,.search-box:focus-within i{color:var(--primary)}
-.header-btn{width:40px;height:40px;border-radius:50%;border:none;background:#f2f4f8;color:#5a6070;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s var(--ease)}
+.search-box input{padding:10px 16px 10px 40px;border:2px solid var(--border);border-radius:25px;width:240px;font-size:.9rem;transition:all .25s var(--ease);background:var(--card);color:var(--text)}
+.search-box input:focus{outline:none;border-color:var(--primary);width:300px;box-shadow:0 0 0 4px rgba(102,126,234,.1)}
+.search-box i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--muted);transition:color .2s}
+.search-box:focus-within i{color:var(--primary)}
+.header-btn{width:40px;height:40px;border-radius:50%;border:none;background:var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s var(--ease)}
 .header-btn:hover{background:var(--primary);color:#fff;transform:translateY(-2px);box-shadow:0 6px 16px rgba(102,126,234,.35)}
 .header-btn:active{transform:translateY(0)}
 
@@ -88,9 +96,24 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg
 .stat-icon.pink{background:#fce4ec;color:#e91e63}
 .stat-icon.purple{background:#f3e5f5;color:#9c27b0}
 .stat-icon.green{background:#e8f5e9;color:#4caf50}
+.stat-icon.star{background:#fff8e1;color:#ffb020}
 .stat-value{font-size:1.9rem;font-weight:700;position:relative}
 .stat-label{color:var(--muted);font-size:.88rem;margin-top:3px;position:relative}
-.stat-change{font-size:.82rem;font-weight:600;margin-top:8px;color:#4caf50;position:relative;display:flex;align-items:center;gap:5px}
+.stat-change{font-size:.82rem;font-weight:600;margin-top:8px;color:var(--success);position:relative;display:flex;align-items:center;gap:5px}
+
+/* chart */
+.chart-card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:26px}
+.chart-card h3{font-size:1rem;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.chart-bars{display:flex;flex-direction:column;gap:10px}
+.chart-row{display:flex;align-items:center;gap:12px;font-size:.85rem}
+.chart-row .chart-label{width:90px;display:flex;align-items:center;gap:6px;color:var(--muted)}
+.chart-row .chart-bar-wrap{flex:1;height:22px;background:var(--border);border-radius:6px;overflow:hidden;position:relative}
+.chart-row .chart-bar{height:100%;border-radius:6px;transition:width .6s var(--ease);display:flex;align-items:center;padding-left:8px;color:#fff;font-size:.72rem;font-weight:700;min-width:24px}
+.chart-row .chart-bar.youtube{background:linear-gradient(90deg,#ff4444,#ff6b6b)}
+.chart-row .chart-bar.instagram{background:linear-gradient(90deg,#f09433,#dc2743)}
+.chart-row .chart-bar.tiktok{background:linear-gradient(90deg,#000,#444)}
+.chart-row .chart-bar.twitter{background:linear-gradient(90deg,#1da1f2,#4fc3f7)}
+.chart-row .chart-bar.other{background:linear-gradient(90deg,var(--primary),var(--primary-dark))}
 
 /* ===== SHARE ===== */
 .share-section{background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:var(--radius);padding:26px;color:#fff;margin-bottom:26px;box-shadow:0 10px 30px rgba(102,126,234,.25);position:relative;overflow:hidden}
@@ -109,9 +132,9 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg
 /* ===== FORM ===== */
 .form-section{background:var(--card);border-radius:20px;padding:30px;box-shadow:var(--shadow);max-width:720px}
 .form-group{margin-bottom:20px}
-label{display:block;margin-bottom:8px;font-weight:600;color:#4a5060;font-size:.92rem}
-input[type=text],input[type=url],select,textarea{width:100%;padding:12px 15px;border:2px solid var(--border);border-radius:10px;font-size:.98rem;transition:all .25s var(--ease);font-family:inherit;background:#fafbfd}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(102,126,234,.1)}
+label{display:block;margin-bottom:8px;font-weight:600;color:var(--muted);font-size:.92rem}
+input[type=text],input[type=url],select,textarea{width:100%;padding:12px 15px;border:2px solid var(--border);border-radius:10px;font-size:.98rem;transition:all .25s var(--ease);font-family:inherit;background:var(--bg);color:var(--text)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);background:var(--card);box-shadow:0 0 0 4px rgba(102,126,234,.1)}
 textarea{resize:vertical;min-height:90px}
 .template-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .template-btn{padding:7px 15px;border:2px solid var(--primary);background:transparent;color:var(--primary);border-radius:20px;cursor:pointer;font-size:.82rem;font-weight:600;transition:all .25s var(--ease)}
@@ -119,25 +142,43 @@ textarea{resize:vertical;min-height:90px}
 .add-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;padding:15px;font-size:1.05rem;font-weight:600;border-radius:50px;cursor:pointer;width:100%;transition:all .25s var(--ease);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:10px}
 .add-btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(102,126,234,.4)}
 .add-btn:active{transform:translateY(0)}
+.multi-hint{background:rgba(102,126,234,.08);border:1px dashed var(--primary);border-radius:10px;padding:10px 14px;font-size:.82rem;color:var(--primary);margin-top:8px;display:flex;align-items:flex-start;gap:8px}
 
 /* thumb preview */
 #thumbPreview{transition:all .3s var(--ease);position:relative;overflow:hidden}
 #thumbPreview .thumb-holder{position:relative!important;height:100%}
 
+/* ===== TOOLBAR ===== */
+.toolbar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;padding:12px 14px;background:var(--card);border-radius:14px;box-shadow:var(--shadow)}
+.toolbar-group{display:flex;gap:8px;align-items:center;padding-right:12px;border-right:1px solid var(--border)}
+.toolbar-group:last-child{border-right:none;padding-right:0;margin-left:auto}
+.toolbar select{padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;background:var(--card);color:var(--text);transition:.2s}
+.toolbar select:focus{outline:none;border-color:var(--primary)}
+.toolbar-btn{padding:8px 14px;border-radius:8px;border:2px solid var(--border);background:var(--card);color:var(--muted);font-size:.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s var(--ease)}
+.toolbar-btn:hover{border-color:var(--primary);color:var(--primary)}
+.toolbar-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.toolbar-btn.danger{color:var(--danger)}
+.toolbar-btn.danger:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+
 /* ===== FILTER ===== */
 .filter-bar{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap;align-items:center}
-.filter-chip{padding:8px 18px;border-radius:25px;border:2px solid var(--border);background:#fff;cursor:pointer;font-size:.87rem;font-weight:600;color:#5a6070;transition:all .25s var(--ease);display:flex;align-items:center;gap:6px}
+.filter-chip{padding:8px 18px;border-radius:25px;border:2px solid var(--border);background:var(--card);cursor:pointer;font-size:.87rem;font-weight:600;color:var(--muted);transition:all .25s var(--ease);display:flex;align-items:center;gap:6px}
 .filter-chip:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px)}
 .filter-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 12px rgba(102,126,234,.3)}
-.view-toggle{display:flex;background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
-.view-btn{padding:9px 14px;border:none;background:#fff;cursor:pointer;color:#8a90a0;transition:.2s}
-.view-btn.active{background:var(--primary);color:#fff}
 
 /* ===== GRID CARDS ===== */
 .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px}
+.cards-grid.compact-mode{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.cards-grid.compact-mode .card-content{padding:14px}
+.cards-grid.compact-mode .card-description,
+.cards-grid.compact-mode .card-meta{display:none}
+.cards-grid.compact-mode .thumbnail-container{height:150px}
 .preview-card{background:var(--card);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);transition:transform .3s var(--ease),box-shadow .3s var(--ease);position:relative;display:block;cursor:pointer;user-select:none}
 .preview-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-hover)}
 .preview-card:active{transform:translateY(-4px) scale(.995)}
+.preview-card.selected{outline:3px solid var(--primary);outline-offset:2px}
+.preview-card.dragging{opacity:.4;transform:scale(.98)}
+.preview-card.drag-over{border:2px dashed var(--primary);transform:translateY(-4px)}
 .card-badge{position:absolute;top:14px;right:14px;color:#fff;padding:4px 13px;border-radius:20px;font-size:.75rem;font-weight:700;text-transform:uppercase;z-index:10;transition:transform .3s var(--ease)}
 .preview-card:hover .card-badge{transform:scale(1.05)}
 .card-badge.youtube{background:#ff0000}
@@ -145,6 +186,19 @@ textarea{resize:vertical;min-height:90px}
 .card-badge.tiktok{background:#000}
 .card-badge.twitter{background:#1da1f2}
 .card-badge.other{background:var(--primary)}
+.card-actions{position:absolute;top:14px;left:14px;display:flex;gap:6px;z-index:20;opacity:0;transition:opacity .2s}
+.preview-card:hover .card-actions{opacity:1}
+.card-act{width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.94);color:#555;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s var(--ease);box-shadow:0 2px 8px rgba(0,0,0,.2);font-size:.85rem}
+.card-act:hover{transform:scale(1.12)}
+.card-act.star{color:var(--star)}
+.card-act.star.active{background:var(--star);color:#fff}
+.card-act.pin{color:var(--primary)}
+.card-act.pin.active{background:var(--primary);color:#fff}
+.card-act.del{color:var(--danger)}
+.card-act.del:hover{background:var(--danger);color:#fff}
+.folder-chip{position:absolute;top:14px;left:14px;background:rgba(0,0,0,.55);color:#fff;padding:4px 10px;border-radius:12px;font-size:.72rem;font-weight:600;display:flex;align-items:center;gap:5px;z-index:11;backdrop-filter:blur(4px);max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .2s}
+.preview-card:hover .folder-chip{opacity:0}
+.pin-marker{position:absolute;bottom:14px;right:14px;color:var(--primary);font-size:.8rem;z-index:10;opacity:.9}
 .thumbnail-container{position:relative;width:100%;height:185px;overflow:hidden;background:linear-gradient(135deg,#667eea,#764ba2)}
 .thumbnail-container::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.15));pointer-events:none;z-index:1}
 .thumbnail{width:100%;height:100%;object-fit:cover;transition:transform .5s var(--ease);position:relative;z-index:1}
@@ -152,46 +206,50 @@ textarea{resize:vertical;min-height:90px}
 .thumbnail-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;gap:8px;z-index:0}
 .thumbnail-fallback i{font-size:2.8rem;opacity:.85}
 .thumbnail-fallback span{font-size:.85rem;opacity:.7}
-.play-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.3);transition:transform .25s var(--ease),background .25s;pointer-events:none;z-index:2}
+.play-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.3);transition:transform .25s var(--ease);pointer-events:none;z-index:2}
 .play-overlay i{color:#ff0000;font-size:1.35rem;margin-left:3px}
-.preview-card:hover .play-overlay{transform:translate(-50%,-50%) scale(1.15);background:#fff}
+.preview-card:hover .play-overlay{transform:translate(-50%,-50%) scale(1.15)}
 .card-content{padding:20px}
-.card-title{font-size:1.1rem;font-weight:700;line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;position:relative;z-index:1}
+.card-title{font-size:1.1rem;font-weight:700;line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-title mark{background:rgba(255,176,32,.4);padding:0 2px;border-radius:2px;color:inherit}
 .card-template{display:inline-block;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;padding:3px 11px;border-radius:14px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
-.card-description{color:#6a7080;font-size:.9rem;line-height:1.55;margin:12px 0 14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-description{color:var(--muted);font-size:.9rem;line-height:1.55;margin:12px 0 14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-description mark{background:rgba(255,176,32,.4);padding:0 2px;border-radius:2px;color:inherit}
 .card-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-.meta-tag{display:flex;align-items:center;gap:5px;padding:5px 10px;background:#f2f4f8;border-radius:9px;font-size:.78rem;color:#5a6070}
+.meta-tag{display:flex;align-items:center;gap:5px;padding:5px 10px;background:var(--bg);border-radius:9px;font-size:.78rem;color:var(--muted)}
 .meta-tag i{color:var(--primary);font-size:.8rem}
 .card-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1.5px solid var(--border)}
 .platform-icon{font-size:1.35rem}
 .youtube-icon{color:#ff0000}.instagram-icon{color:#e4405f}.tiktok-icon{color:#000}.twitter-icon{color:#1da1f2}.link-icon{color:var(--primary)}
 .click-hint{display:flex;align-items:center;gap:6px;color:var(--primary);font-weight:600;font-size:.85rem;transition:gap .25s var(--ease)}
 .preview-card:hover .click-hint{gap:10px}
-.delete-btn{position:absolute;top:14px;left:14px;background:rgba(255,255,255,.94);color:#ff4444;width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .25s var(--ease);z-index:20;box-shadow:0 2px 8px rgba(0,0,0,.2)}
-.preview-card:hover .delete-btn{opacity:1}
-.delete-btn:hover{background:#ff4444;color:#fff;transform:scale(1.12)}
-.folder-chip{position:absolute;top:14px;left:14px;background:rgba(0,0,0,.55);color:#ffd166;padding:4px 10px;border-radius:12px;font-size:.72rem;font-weight:600;display:flex;align-items:center;gap:5px;z-index:11;backdrop-filter:blur(4px);max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .2s}
-.preview-card:hover .folder-chip{opacity:0}
 
 /* ===== LIST ===== */
 .list-item{background:var(--card);border-radius:14px;padding:16px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);transition:all .25s var(--ease);cursor:pointer}
 .list-item:hover{transform:translateX(6px);box-shadow:var(--shadow-hover)}
-.list-item:active{transform:translateX(3px)}
+.list-item.selected{outline:3px solid var(--primary);outline-offset:2px}
+.list-item.dragging{opacity:.4}
+.list-item.drag-over{border:2px dashed var(--primary)}
 .list-thumb-wrap{position:relative;width:76px;height:76px;border-radius:12px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--primary-dark))}
 .list-thumb{width:100%;height:100%;object-fit:cover;position:relative;z-index:1}
 .list-thumb-wrap .thumbnail-fallback i{font-size:1.8rem}
 .list-thumb-wrap .thumbnail-fallback span{display:none}
 .list-info{flex:1;min-width:0}
 .list-title{font-weight:700;font-size:1rem;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.list-meta{display:flex;gap:14px;color:#8a90a0;font-size:.82rem;flex-wrap:wrap}
+.list-meta{display:flex;gap:14px;color:var(--muted);font-size:.82rem;flex-wrap:wrap}
 .list-meta span{display:flex;align-items:center;gap:5px}
-.list-actions{display:flex;gap:8px}
-.list-btn{width:34px;height:34px;border-radius:9px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s var(--ease);background:#f2f4f8;color:#5a6070}
+.list-actions{display:flex;gap:6px}
+.list-btn{width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s var(--ease);background:var(--bg);color:var(--muted);font-size:.85rem}
 .list-btn.view{background:#e3f2fd;color:#2196f3}
 .list-btn.delete{background:#ffebee;color:#f44336}
 .list-btn.folder{background:#fff8e1;color:#f9a825}
+.list-btn.star{background:#fff8e1;color:#ffb020}
+.list-btn.pin{background:#e3f2fd;color:#2196f3}
 .list-btn:hover{transform:scale(1.12)}
 .list-btn:active{transform:scale(.95)}
+.list-btn.star.active,.list-btn.pin.active{color:#fff}
+.list-btn.star.active{background:var(--star)}
+.list-btn.pin.active{background:var(--primary)}
 
 /* ===== SETTINGS ===== */
 .settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:22px}
@@ -202,18 +260,21 @@ textarea{resize:vertical;min-height:90px}
 .setting-item:last-child{border-bottom:none}
 .setting-info h4{font-size:.95rem;margin-bottom:3px}
 .setting-info p{font-size:.8rem;color:var(--muted)}
-.toggle{width:48px;height:26px;background:#d5d9e2;border-radius:13px;position:relative;cursor:pointer;transition:background .25s var(--ease);flex-shrink:0}
+.toggle{width:48px;height:26px;background:var(--border);border-radius:13px;position:relative;cursor:pointer;transition:background .25s var(--ease);flex-shrink:0}
 .toggle.active{background:var(--primary)}
 .toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:2px;left:2px;transition:transform .25s var(--ease);box-shadow:0 2px 5px rgba(0,0,0,.2)}
 .toggle.active::after{transform:translateX(22px)}
 .import-box{display:flex;gap:10px;margin-bottom:14px}
-.import-input{flex:1;padding:12px 15px;border:2px solid var(--border);border-radius:10px;font-family:'Courier New',monospace;font-size:.88rem;transition:all .25s;min-width:0}
+.import-input{flex:1;padding:12px 15px;border:2px solid var(--border);border-radius:10px;font-family:'Courier New',monospace;font-size:.88rem;transition:all .25s;min-width:0;background:var(--bg);color:var(--text)}
 .import-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(102,126,234,.1)}
+.shortcuts-list{display:flex;flex-direction:column;gap:8px;font-size:.85rem}
+.shortcut-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0}
+.kbd{background:var(--bg);border:1px solid var(--border);border-bottom-width:2px;padding:3px 8px;border-radius:6px;font-family:monospace;font-size:.78rem;color:var(--text);font-weight:600}
 
 /* ===== EMPTY ===== */
-.empty-state{text-align:center;padding:60px 20px;color:#a0a6b5}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty-state i{font-size:4rem;margin-bottom:16px;opacity:.3;display:block}
-.empty-state h2{color:#8a90a0;margin-bottom:6px;font-size:1.2rem}
+.empty-state h2{margin-bottom:6px;font-size:1.2rem}
 .empty-state p{font-size:.9rem;margin-bottom:18px}
 .empty-cta{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border:none;border-radius:25px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-weight:600;cursor:pointer;transition:all .25s var(--ease);font-size:.9rem}
 .empty-cta:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(102,126,234,.4)}
@@ -231,7 +292,7 @@ textarea{resize:vertical;min-height:90px}
 .redirect-target-url{font-size:.95rem;font-weight:600}
 .redirect-progress{width:280px;height:4px;background:rgba(255,255,255,.3);border-radius:2px;overflow:hidden;margin:0 auto 18px}
 .redirect-progress-bar{height:100%;background:#fff;border-radius:2px;width:0}
-.redirect-progress-bar.animating{animation:progress 2s ease forwards}
+.redirect-progress-bar.animating{animation:progress 1.5s ease forwards}
 @keyframes progress{0%{width:0}100%{width:100%}}
 .redirect-actions{display:flex;gap:12px;justify-content:center;margin-top:8px}
 .redirect-btn{padding:11px 22px;border-radius:25px;border:2px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-weight:600;cursor:pointer;transition:all .25s var(--ease);font-size:.9rem}
@@ -241,31 +302,63 @@ textarea{resize:vertical;min-height:90px}
 .redirect-blocked.show{display:block}
 
 /* ===== TOAST ===== */
-.toast{position:fixed;bottom:26px;right:26px;background:#2a2f3a;color:#fff;padding:13px 20px;border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.3);transform:translateY(120px);opacity:0;transition:all .3s var(--ease);z-index:10000;max-width:340px;font-size:.9rem;display:flex;align-items:center;gap:10px;pointer-events:none}
-.toast.show{transform:translateY(0);opacity:1}
-.toast i{font-size:1.05rem}
-.toast.error{background:#ff4d4f}
+.toast{position:fixed;bottom:26px;right:26px;background:#2a2f3a;color:#fff;padding:13px 20px;border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.3);transform:translateY(120px);opacity:0;transition:all .3s var(--ease);z-index:10000;max-width:400px;font-size:.9rem;display:flex;align-items:center;gap:10px;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1;pointer-events:auto}
+.toast i{font-size:1.05rem;flex-shrink:0}
+.toast .toast-msg{flex:1}
+.toast .toast-action{padding:5px 12px;border-radius:6px;border:none;background:rgba(255,255,255,.2);color:#fff;font-weight:700;cursor:pointer;font-size:.8rem;margin-left:6px;transition:.2s}
+.toast .toast-action:hover{background:rgba(255,255,255,.3)}
+.toast.error{background:var(--danger)}
 .toast.success{background:#2a2f3a}
 .toast.info{background:#2196f3}
+.toast.warning{background:#ff9800}
 
 /* ===== MODAL ===== */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,25,40,.55);z-index:5000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);opacity:0;transition:opacity .25s}
 .modal-overlay.active{display:flex;opacity:1}
-.modal{background:#fff;border-radius:18px;padding:26px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:modalIn .3s var(--ease)}
+.modal{background:var(--card);border-radius:18px;padding:26px;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:modalIn .3s var(--ease);color:var(--text)}
 @keyframes modalIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .modal h3{margin-bottom:16px;display:flex;align-items:center;gap:10px}
 .modal-actions{display:flex;gap:10px;margin-top:20px}
 .modal-btn{flex:1;padding:12px;border:none;border-radius:10px;font-weight:600;cursor:pointer;transition:all .2s var(--ease);font-size:.95rem}
 .modal-btn.primary{background:var(--primary);color:#fff}
-.modal-btn.ghost{background:#f2f4f8;color:#5a6070}
+.modal-btn.ghost{background:var(--bg);color:var(--muted)}
+.modal-btn.danger{background:var(--danger);color:#fff}
 .modal-btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
-.folder-options{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto}
+.folder-options{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto}
 .folder-option{padding:12px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .2s var(--ease);font-size:.92rem}
 .folder-option:hover,.folder-option.selected{border-color:var(--primary);background:rgba(102,126,234,.06);transform:translateX(2px)}
-.folder-option i{color:#ffb020}
+.folder-option .folder-dot{width:12px;height:12px;border-radius:50%}
+.color-picker{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.color-swatch{width:32px;height:32px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:.2s}
+.color-swatch.selected{border-color:var(--text);transform:scale(1.1)}
+
+/* ===== COMMAND PALETTE ===== */
+.cmdk-overlay{display:none;position:fixed;inset:0;background:rgba(20,25,40,.7);z-index:8000;padding-top:15vh;justify-content:center;backdrop-filter:blur(4px);opacity:0;transition:opacity .2s}
+.cmdk-overlay.active{display:flex;opacity:1}
+.cmdk{background:var(--card);border-radius:16px;width:100%;max-width:560px;max-height:60vh;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5);animation:modalIn .25s var(--ease);display:flex;flex-direction:column}
+.cmdk-input-wrap{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.cmdk-input-wrap i{color:var(--muted)}
+.cmdk-input{flex:1;border:none;background:transparent;font-size:1.05rem;color:var(--text);outline:none}
+.cmdk-list{overflow-y:auto;padding:8px}
+.cmdk-item{padding:12px 14px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:12px;font-size:.9rem;transition:.15s}
+.cmdk-item:hover,.cmdk-item.active{background:rgba(102,126,234,.1);color:var(--primary)}
+.cmdk-item i{width:20px;text-align:center;color:var(--muted)}
+.cmdk-item.active i{color:var(--primary)}
+.cmdk-item .cmdk-hint{margin-left:auto;font-size:.75rem;color:var(--muted)}
+.cmdk-empty{padding:30px;text-align:center;color:var(--muted);font-size:.9rem}
+
+/* ===== BATCH BAR ===== */
+.batch-bar{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--card);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.3);padding:14px 20px;display:flex;align-items:center;gap:14px;z-index:6000;transition:transform .3s var(--ease);border:2px solid var(--primary)}
+.batch-bar.show{transform:translateX(-50%) translateY(0)}
+.batch-bar .batch-count{font-weight:700;color:var(--primary)}
+.batch-btn{padding:8px 14px;border-radius:8px;border:none;background:var(--bg);color:var(--text);font-weight:600;cursor:pointer;font-size:.85rem;transition:.2s;display:flex;align-items:center;gap:6px}
+.batch-btn:hover{background:var(--primary);color:#fff}
+.batch-btn.danger:hover{background:var(--danger)}
+.batch-close{background:transparent;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted);padding:4px}
 
 /* ===== SKELETON ===== */
-.thumb-holder{background:linear-gradient(90deg,#eef1f6 25%,#f6f8fb 50%,#eef1f6 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear}
+.thumb-holder{background:linear-gradient(90deg,var(--border) 25%,var(--bg) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .thumb-holder[data-resolved]{animation:none;background:transparent}
 
@@ -282,11 +375,14 @@ textarea{resize:vertical;min-height:90px}
   .main-content{margin-left:0!important}
   .search-box input{width:140px}
   .search-box input:focus{width:180px}
-  .page{padding:20px}
+  .page{padding:16px}
   .share-box,.import-box{flex-direction:column}
   .cards-grid{grid-template-columns:1fr}
   .top-header{padding:0 16px}
   .page-title{font-size:1.1rem}
+  .toolbar{padding:10px}
+  .toolbar-group{border-right:none;padding-right:0}
+  .batch-bar{padding:10px;gap:8px;width:calc(100% - 32px)}
 }
 </style>
 </head>
@@ -322,9 +418,11 @@ textarea{resize:vertical;min-height:90px}
     <div class="header-actions">
       <div class="search-box">
         <i class="fas fa-search"></i>
-        <input type="text" placeholder="Search links..." id="searchInput" oninput="onSearch()">
+        <input type="text" placeholder="Search links... (Ctrl+K)" id="searchInput" oninput="onSearch()">
       </div>
-      <button class="header-btn" onclick="navigateTo('add')" title="Add New"><i class="fas fa-plus"></i></button>
+      <button class="header-btn" onclick="openCmdk()" title="Command Palette (Ctrl+K)"><i class="fas fa-terminal"></i></button>
+      <button class="header-btn" onclick="navigateTo('add')" title="Add New (N)"><i class="fas fa-plus"></i></button>
+      <button class="header-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode"><i class="fas fa-moon" id="darkIcon"></i></button>
       <button class="header-btn" onclick="toggleMobileSidebar()" title="Menu"><i class="fas fa-bars"></i></button>
     </div>
   </header>
@@ -335,7 +433,12 @@ textarea{resize:vertical;min-height:90px}
       <div class="stat-card"><div class="stat-header"><div><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Links</div></div><div class="stat-icon blue"><i class="fas fa-link"></i></div></div><div class="stat-change"><i class="fas fa-arrow-up"></i> All time</div></div>
       <div class="stat-card"><div class="stat-header"><div><div class="stat-value" id="statYouTube">0</div><div class="stat-label">YouTube</div></div><div class="stat-icon pink"><i class="fab fa-youtube"></i></div></div><div class="stat-change"><i class="fas fa-play"></i> Videos</div></div>
       <div class="stat-card"><div class="stat-header"><div><div class="stat-value" id="statInstagram">0</div><div class="stat-label">Instagram</div></div><div class="stat-icon purple"><i class="fab fa-instagram"></i></div></div><div class="stat-change"><i class="fas fa-image"></i> Posts</div></div>
-      <div class="stat-card"><div class="stat-header"><div><div class="stat-value" id="statTikTok">0</div><div class="stat-label">TikTok</div></div><div class="stat-icon green"><i class="fab fa-tiktok"></i></div></div><div class="stat-change"><i class="fas fa-music"></i> Shorts</div></div>
+      <div class="stat-card"><div class="stat-header"><div><div class="stat-value" id="statStarred">0</div><div class="stat-label">Starred</div></div><div class="stat-icon star"><i class="fas fa-star"></i></div></div><div class="stat-change"><i class="fas fa-bookmark"></i> Favorites</div></div>
+    </div>
+
+    <div class="chart-card">
+      <h3><i class="fas fa-chart-bar" style="color:var(--primary)"></i> Platform Distribution</h3>
+      <div class="chart-bars" id="chartBars"></div>
     </div>
 
     <div class="share-section">
@@ -357,7 +460,11 @@ textarea{resize:vertical;min-height:90px}
   <div class="page" id="page-add">
     <div class="form-section">
       <h2 style="margin-bottom:22px;"><i class="fas fa-plus-circle" style="color:var(--primary)"></i> Add New Link</h2>
-      <div class="form-group"><label><i class="fas fa-globe"></i> Media URL</label><input type="url" id="urlInput" placeholder="https://..." oninput="previewThumb()"></div>
+      <div class="form-group">
+        <label><i class="fas fa-globe"></i> Media URL <span style="color:var(--muted);font-weight:400;font-size:.82rem;">(bisa paste banyak URL, 1 per baris)</span></label>
+        <textarea id="urlInput" placeholder="https://youtube.com/watch?v=...&#10;https://instagram.com/p/...&#10;https://tiktok.com/@user/video/..." oninput="previewThumb()" style="min-height:100px;font-family:monospace;font-size:.85rem;"></textarea>
+        <div class="multi-hint"><i class="fas fa-magic"></i><span>Paste lebih dari 1 URL → semua akan otomatis ditambahkan sekaligus dengan template & folder yang sama.</span></div>
+      </div>
       <div class="form-group">
         <label><i class="fas fa-heading"></i> Template</label>
         <div class="template-buttons">
@@ -379,36 +486,46 @@ textarea{resize:vertical;min-height:90px}
       <div class="form-group">
         <label><i class="fas fa-image"></i> Custom Thumbnail URL (optional)</label>
         <input type="url" id="thumbInput" placeholder="Kosongkan untuk auto-detect" oninput="previewThumb()">
-        <p style="font-size:.78rem;color:#8a90a0;margin-top:5px;"><i class="fas fa-info-circle"></i> Kosongkan → auto-detect. Kalau gagal, fallback ke auto.</p>
       </div>
-
       <div class="form-group">
         <label><i class="fas fa-eye"></i> Thumbnail Preview</label>
-        <div id="thumbPreview" style="width:100%;height:180px;border-radius:12px;overflow:hidden;background:#f2f4f8;display:flex;align-items:center;justify-content:center;color:#a0a6b5;border:2px dashed var(--border);">
+        <div id="thumbPreview" style="width:100%;height:180px;border-radius:12px;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--muted);border:2px dashed var(--border);">
           <div style="text-align:center;"><i class="fas fa-image" style="font-size:2rem;opacity:.4;"></i><p style="font-size:.8rem;margin-top:8px;">Belum ada preview</p></div>
         </div>
-        <div id="thumbDebug" style="font-size:.75rem;color:#8a90a0;margin-top:6px;font-family:monospace;word-break:break-all;"></div>
+        <div id="thumbDebug" style="font-size:.75rem;color:var(--muted);margin-top:6px;font-family:monospace;word-break:break-all;"></div>
       </div>
-
       <button class="add-btn" onclick="addCard()"><i class="fas fa-plus-circle"></i> Generate Preview Card</button>
     </div>
   </div>
 
   <!-- GRID -->
   <div class="page" id="page-grid">
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <select id="sortSelect" onchange="onSortChange()">
+          <option value="newest">↓ Terbaru</option>
+          <option value="oldest">↑ Terlama</option>
+          <option value="az">A-Z</option>
+          <option value="platform">Platform</option>
+        </select>
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" data-view="grid" onclick="switchView('grid', this)"><i class="fas fa-th-large"></i> Grid</button>
+        <button class="toolbar-btn" data-view="compact" onclick="switchView('compact', this)"><i class="fas fa-th"></i> Compact</button>
+        <button class="toolbar-btn" data-view="list" onclick="switchView('list', this)"><i class="fas fa-list"></i> List</button>
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" onclick="selectAll()" title="Pilih semua"><i class="fas fa-check-square"></i> Select All</button>
+      </div>
+    </div>
     <div class="filter-bar" id="filterBarGrid">
       <button class="filter-chip active" data-filter="all" onclick="filterCards('all', this)">All</button>
+      <button class="filter-chip" data-filter="starred" onclick="filterCards('starred', this)"><i class="fas fa-star"></i> Starred</button>
       <button class="filter-chip" data-filter="youtube" onclick="filterCards('youtube', this)"><i class="fab fa-youtube"></i> YouTube</button>
       <button class="filter-chip" data-filter="instagram" onclick="filterCards('instagram', this)"><i class="fab fa-instagram"></i> Instagram</button>
       <button class="filter-chip" data-filter="tiktok" onclick="filterCards('tiktok', this)"><i class="fab fa-tiktok"></i> TikTok</button>
       <button class="filter-chip" data-filter="twitter" onclick="filterCards('twitter', this)"><i class="fab fa-twitter"></i> Twitter</button>
-      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
-        <span id="activeFolderLabel" style="font-size:.85rem;color:var(--muted);display:none;"></span>
-        <div class="view-toggle">
-          <button class="view-btn active" data-view="grid" onclick="switchView('grid', this)"><i class="fas fa-th-large"></i></button>
-          <button class="view-btn" data-view="list" onclick="switchView('list', this)"><i class="fas fa-list"></i></button>
-        </div>
-      </div>
+      <span id="activeFolderLabel" style="margin-left:auto;font-size:.85rem;color:var(--muted);display:none;"></span>
     </div>
     <div id="gridContainer" class="cards-grid"></div>
     <div id="gridEmpty" class="empty-state" style="display:none;"><i class="fas fa-photo-video"></i><h2>No links found</h2><p>Try a different filter or add new links</p><button class="empty-cta" onclick="navigateTo('add')"><i class="fas fa-plus"></i> Add Link</button></div>
@@ -418,10 +535,10 @@ textarea{resize:vertical;min-height:90px}
   <div class="page" id="page-list">
     <div class="filter-bar" id="filterBarList">
       <button class="filter-chip active" data-filter="all" onclick="filterCards('all', this)">All</button>
+      <button class="filter-chip" data-filter="starred" onclick="filterCards('starred', this)"><i class="fas fa-star"></i> Starred</button>
       <button class="filter-chip" data-filter="youtube" onclick="filterCards('youtube', this)"><i class="fab fa-youtube"></i> YouTube</button>
       <button class="filter-chip" data-filter="instagram" onclick="filterCards('instagram', this)"><i class="fab fa-instagram"></i> Instagram</button>
       <button class="filter-chip" data-filter="tiktok" onclick="filterCards('tiktok', this)"><i class="fab fa-tiktok"></i> TikTok</button>
-      <button class="filter-chip" data-filter="twitter" onclick="filterCards('twitter', this)"><i class="fab fa-twitter"></i> Twitter</button>
     </div>
     <div id="listContainer"></div>
     <div id="listEmpty" class="empty-state" style="display:none;"><i class="fas fa-list"></i><h2>No links found</h2><p>Try a different filter or add new links</p><button class="empty-cta" onclick="navigateTo('add')"><i class="fas fa-plus"></i> Add Link</button></div>
@@ -441,8 +558,8 @@ textarea{resize:vertical;min-height:90px}
           <div class="toggle" id="toggleRedirect" onclick="toggleSetting(this,'autoRedirect')"></div>
         </div>
         <div class="setting-item">
-          <div class="setting-info"><h4>Compact View</h4><p>Smaller cards</p></div>
-          <div class="toggle" id="toggleCompact" onclick="toggleSetting(this,'compactView')"></div>
+          <div class="setting-info"><h4>Dark Mode</h4><p>Tema gelap</p></div>
+          <div class="toggle" id="toggleDark" onclick="toggleSetting(this,'darkMode')"></div>
         </div>
       </div>
       <div class="settings-card">
@@ -453,9 +570,22 @@ textarea{resize:vertical;min-height:90px}
           <button class="share-btn" onclick="importFromCode()" style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;"><i class="fas fa-download"></i> Import</button>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="share-btn" onclick="exportToFile()" style="background:#f2f4f8;color:#5a6070;"><i class="fas fa-file-export"></i> Export JSON</button>
-          <button class="share-btn" onclick="document.getElementById('importFile').click()" style="background:#f2f4f8;color:#5a6070;"><i class="fas fa-folder-open"></i> Import File</button>
+          <button class="share-btn" onclick="exportToFile()" style="background:var(--bg);color:var(--muted);"><i class="fas fa-file-export"></i> Export JSON</button>
+          <button class="share-btn" onclick="exportToHTML()" style="background:var(--bg);color:var(--muted);"><i class="fas fa-code"></i> Export HTML</button>
+          <button class="share-btn" onclick="document.getElementById('importFile').click()" style="background:var(--bg);color:var(--muted);"><i class="fas fa-folder-open"></i> Import File</button>
           <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importFromFile(this)">
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3><i class="fas fa-keyboard" style="color:var(--primary)"></i> Keyboard Shortcuts</h3>
+        <div class="shortcuts-list">
+          <div class="shortcut-row"><span>Command Palette</span><span class="kbd">Ctrl</span>+<span class="kbd">K</span></div>
+          <div class="shortcut-row"><span>Focus Search</span><span class="kbd">/</span></div>
+          <div class="shortcut-row"><span>Add New</span><span class="kbd">N</span></div>
+          <div class="shortcut-row"><span>Grid View</span><span class="kbd">G</span></div>
+          <div class="shortcut-row"><span>List View</span><span class="kbd">L</span></div>
+          <div class="shortcut-row"><span>Close Modal/Overlay</span><span class="kbd">Esc</span></div>
+          <div class="shortcut-row"><span>Select All</span><span class="kbd">Ctrl</span>+<span class="kbd">A</span></div>
         </div>
       </div>
       <div class="settings-card">
@@ -500,7 +630,9 @@ textarea{resize:vertical;min-height:90px}
 <div class="modal-overlay" id="newFolderModal">
   <div class="modal">
     <h3><i class="fas fa-folder-plus" style="color:#ffb020"></i> Folder Baru</h3>
-    <input type="text" id="newFolderName" placeholder="Nama folder..." style="width:100%;padding:12px 15px;border:2px solid var(--border);border-radius:10px;font-size:.95rem;">
+    <input type="text" id="newFolderName" placeholder="Nama folder..." style="width:100%;padding:12px 15px;border:2px solid var(--border);border-radius:10px;font-size:.95rem;background:var(--bg);color:var(--text);margin-bottom:12px;">
+    <label style="font-size:.85rem;">Warna</label>
+    <div class="color-picker" id="colorPicker"></div>
     <div class="modal-actions">
       <button class="modal-btn ghost" onclick="closeNewFolderModal()">Batal</button>
       <button class="modal-btn primary" onclick="createFolder()">Buat</button>
@@ -508,7 +640,27 @@ textarea{resize:vertical;min-height:90px}
   </div>
 </div>
 
-<div id="toast" class="toast"><i class="fas fa-check-circle"></i><span>Notification</span></div>
+<!-- COMMAND PALETTE -->
+<div class="cmdk-overlay" id="cmdkOverlay" onclick="if(event.target===this)closeCmdk()">
+  <div class="cmdk">
+    <div class="cmdk-input-wrap">
+      <i class="fas fa-terminal"></i>
+      <input type="text" class="cmdk-input" id="cmdkInput" placeholder="Cari aksi atau link..." oninput="renderCmdk()">
+    </div>
+    <div class="cmdk-list" id="cmdkList"></div>
+  </div>
+</div>
+
+<!-- BATCH BAR -->
+<div class="batch-bar" id="batchBar">
+  <span class="batch-count" id="batchCount">0 dipilih</span>
+  <button class="batch-btn" onclick="batchMoveToFolder()"><i class="fas fa-folder"></i> Pindah</button>
+  <button class="batch-btn" onclick="batchStar()"><i class="fas fa-star"></i> Star</button>
+  <button class="batch-btn danger" onclick="batchDelete()"><i class="fas fa-trash"></i> Hapus</button>
+  <button class="batch-close" onclick="clearSelection()">✕</button>
+</div>
+
+<div id="toast" class="toast"><i class="fas fa-check-circle"></i><span class="toast-msg">Notification</span></div>
 
 <script>
 /* ================= STATE ================= */
@@ -517,12 +669,19 @@ let folders = [];
 let currentFilter = 'all';
 let currentFolder = 'all';
 let currentPage = 'dashboard';
-let currentView = 'grid';
+let currentView = 'grid'; // grid | compact | list
 let searchQuery = '';
 let pendingCardIdForFolder = null;
 let redirectTimer = null, targetUrl = '';
 let searchTimer = null;
-let settings = {autoRedirect:false, compactView:false, sameTab:false}; // sameTab=false → NEW TAB (default)
+let selectedCards = new Set();
+let undoBuffer = null;
+let newFolderColor = '#667eea';
+let cmdkActiveIdx = 0;
+let cmdkCommands = [];
+let settings = {autoRedirect:false, sameTab:false, darkMode:false};
+
+const FOLDER_COLORS = ['#667eea','#f09433','#dc2743','#ffb020','#2ecc71','#1da1f2','#9c27b0','#ff4757','#00bcd4','#795548'];
 
 /* ================= INIT ================= */
 document.addEventListener('DOMContentLoaded', () => {
@@ -531,15 +690,54 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const s = JSON.parse(localStorage.getItem('linkPreviewSettings')||'{}');
     settings.autoRedirect = !!s.autoRedirect;
-    settings.compactView = !!s.compactView;
     settings.sameTab = !!s.sameTab;
+    settings.darkMode = !!s.darkMode;
   } catch(e){}
   if (!Array.isArray(cards)) cards = [];
   if (!Array.isArray(folders)) folders = [];
+  if (settings.darkMode) document.body.classList.add('dark');
   loadSettingsUI();
   refreshAllUI();
-  bindKeyboard();
+  bindGlobalEvents();
+  buildColorPicker();
 });
+
+/* ================= GLOBAL EVENTS ================= */
+function bindGlobalEvents(){
+  document.addEventListener('keydown', (e)=>{
+    // Skip if typing in input
+    const tag = (e.target.tagName||'').toLowerCase();
+    const isInput = tag === 'input' || tag === 'textarea' || tag === 'select';
+    if (e.key === 'Escape'){
+      closeFolderModal(); closeNewFolderModal(); closeCmdk();
+      document.getElementById('redirectOverlay').classList.remove('active');
+      clearTimeout(redirectTimer);
+      closeMobileSidebar();
+      clearSelection();
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='k'){
+      e.preventDefault(); openCmdk(); return;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='a' && !isInput){
+      if (currentPage==='grid' || currentPage==='list'){ e.preventDefault(); selectAll(); }
+      return;
+    }
+    if (isInput) return;
+    if (e.key === '/'){ e.preventDefault(); document.getElementById('searchInput').focus(); }
+    if (e.key.toLowerCase()==='n'){ navigateTo('add'); }
+    if (e.key.toLowerCase()==='g'){ switchView('grid', null); }
+    if (e.key.toLowerCase()==='l'){ switchView('list', null); }
+  });
+
+  // Ctrl+A in cmdk
+  document.getElementById('cmdkInput').addEventListener('keydown', (e)=>{
+    const items = document.querySelectorAll('.cmdk-item');
+    if (e.key === 'ArrowDown'){ e.preventDefault(); cmdkActiveIdx = Math.min(cmdkActiveIdx+1, items.length-1); highlightCmdk(); }
+    if (e.key === 'ArrowUp'){ e.preventDefault(); cmdkActiveIdx = Math.max(cmdkActiveIdx-1, 0); highlightCmdk(); }
+    if (e.key === 'Enter'){ e.preventDefault(); if (items[cmdkActiveIdx]) items[cmdkActiveIdx].click(); }
+  });
+}
 
 /* ================= NAV ================= */
 function navigateTo(page){
@@ -554,6 +752,7 @@ function navigateTo(page){
   if (page==='add') populateFolderSelect();
   closeMobileSidebar();
   if (page==='grid' || page==='list') renderContentPages();
+  if (page==='dashboard') renderChart();
   window.scrollTo({top:0, behavior:'smooth'});
 }
 function updatePageTitle(){
@@ -575,21 +774,6 @@ function closeMobileSidebar(){
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('mobileOverlay').classList.remove('active');
 }
-function bindKeyboard(){
-  document.addEventListener('keydown', (e)=>{
-    if (e.key === 'Escape'){
-      closeFolderModal(); closeNewFolderModal();
-      document.getElementById('redirectOverlay').classList.remove('active');
-      clearTimeout(redirectTimer);
-      closeMobileSidebar();
-    }
-    if (e.ctrlKey && e.key.toLowerCase()==='k'){
-      e.preventDefault();
-      const s = document.getElementById('searchInput');
-      if (s){ s.focus(); s.select(); }
-    }
-  });
-}
 
 /* ================= MASTER REFRESH ================= */
 function refreshAllUI(){
@@ -600,6 +784,31 @@ function refreshAllUI(){
   renderContentPages();
   populateFolderSelect();
   updatePageTitle();
+  if (currentPage==='dashboard') renderChart();
+}
+
+/* ================= CHART ================= */
+function renderChart(){
+  const el = document.getElementById('chartBars');
+  if (!el) return;
+  const platforms = ['youtube','instagram','tiktok','twitter','other'];
+  const counts = {};
+  platforms.forEach(p=>counts[p] = cards.filter(c=>c.platform===p).length);
+  const max = Math.max(1, ...Object.values(counts));
+  const labels = {youtube:'YouTube', instagram:'Instagram', tiktok:'TikTok', twitter:'Twitter', other:'Other'};
+  const icons = {youtube:'fab fa-youtube', instagram:'fab fa-instagram', tiktok:'fab fa-tiktok', twitter:'fab fa-twitter', other:'fas fa-link'};
+  if (!cards.length){
+    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:.9rem;">Belum ada data</div>`;
+    return;
+  }
+  el.innerHTML = platforms.map(p=>{
+    const c = counts[p];
+    const pct = Math.round(c/max*100);
+    return `<div class="chart-row">
+      <div class="chart-label"><i class="${icons[p]}"></i> ${labels[p]}</div>
+      <div class="chart-bar-wrap"><div class="chart-bar ${p}" style="width:${pct}%">${c||''}</div></div>
+    </div>`;
+  }).join('');
 }
 
 /* ================= FOLDERS ================= */
@@ -613,8 +822,9 @@ function renderFolders(){
   list.innerHTML = folders.map(f=>{
     const count = cards.filter(c=>c.folderId===f.id).length;
     const active = currentFolder===f.id ? 'active' : '';
+    const color = f.color || 'var(--primary)';
     return `<div class="folder-item ${active}" data-folder-id="${f.id}">
-      <i class="fas fa-folder"></i>
+      <span class="folder-dot" style="background:${color};color:${color}"></span>
       <span class="folder-name">${escapeHtml(f.name)}</span>
       <span class="folder-count">${count}</span>
       <i class="fas fa-times folder-del" onclick="event.stopPropagation(); deleteFolder('${f.id}')"></i>
@@ -622,6 +832,16 @@ function renderFolders(){
   }).join('');
   list.querySelectorAll('.folder-item').forEach(el=>{
     el.addEventListener('click', ()=>selectFolder(el.dataset.folderId));
+    // Drag & drop — drop card ke folder
+    el.addEventListener('dragover', (e)=>{ e.preventDefault(); el.classList.add('drag-over'); });
+    el.addEventListener('dragleave', ()=> el.classList.remove('drag-over'));
+    el.addEventListener('drop', (e)=>{
+      e.preventDefault(); el.classList.remove('drag-over');
+      const cardId = e.dataTransfer.getData('text/plain');
+      if (!cardId) return;
+      const card = cards.find(c=>c.id===cardId);
+      if (card){ card.folderId = el.dataset.folderId; saveCards(); refreshAllUI(); showToast('Link dipindahkan ke folder','success'); }
+    });
   });
 }
 function selectFolder(id){
@@ -649,7 +869,7 @@ function openFolderModal(cardId=null){
   const card = cardId ? cards.find(c=>c.id===cardId) : null;
   const currentFid = card?.folderId || '';
   let html = `<div class="folder-option ${!currentFid?'selected':''}" data-id="" onclick="selectFolderOption(this)"><i class="fas fa-ban" style="color:#bbb"></i> — Tanpa folder —</div>`;
-  html += folders.map(f=>`<div class="folder-option ${currentFid===f.id?'selected':''}" data-id="${f.id}" onclick="selectFolderOption(this)"><i class="fas fa-folder"></i> ${escapeHtml(f.name)}</div>`).join('');
+  html += folders.map(f=>`<div class="folder-option ${currentFid===f.id?'selected':''}" data-id="${f.id}" onclick="selectFolderOption(this)"><span class="folder-dot" style="background:${f.color||'var(--primary)'}"></span> ${escapeHtml(f.name)}</div>`).join('');
   if (!folders.length) html += `<p style="font-size:.85rem;color:var(--muted);padding:6px 0;">Belum ada folder. Buat lewat sidebar.</p>`;
   container.innerHTML = html;
   document.getElementById('folderModal').classList.add('active');
@@ -678,8 +898,20 @@ function confirmFolderAssign(){
   closeFolderModal();
   refreshAllUI();
 }
+function buildColorPicker(){
+  const el = document.getElementById('colorPicker');
+  if (!el) return;
+  el.innerHTML = FOLDER_COLORS.map(c=>`<div class="color-swatch ${c===newFolderColor?'selected':''}" style="background:${c}" onclick="pickColor('${c}', this)"></div>`).join('');
+}
+function pickColor(c, el){
+  newFolderColor = c;
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+}
 function openNewFolderModal(){
   document.getElementById('newFolderName').value='';
+  newFolderColor = '#667eea';
+  buildColorPicker();
   document.getElementById('newFolderModal').classList.add('active');
   setTimeout(()=>document.getElementById('newFolderName').focus(),50);
 }
@@ -689,7 +921,7 @@ function closeNewFolderModal(){
 function createFolder(){
   const name = document.getElementById('newFolderName').value.trim();
   if (!name){ showToast('Nama folder kosong', 'error'); return; }
-  folders.push({id:'f'+Date.now(), name});
+  folders.push({id:'f'+Date.now(), name, color: newFolderColor});
   localStorage.setItem('mediaFolders', JSON.stringify(folders));
   closeNewFolderModal();
   refreshAllUI();
@@ -713,7 +945,7 @@ function populateFolderSelect(){
   if (current && folders.find(f=>f.id===current)) sel.value = current;
 }
 
-/* ================= THUMBNAIL ENGINE ================= */
+/* ================= THUMBNAIL ================= */
 function extractYouTubeID(url){
   if (!url) return null;
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([A-Za-z0-9_-]{11})/);
@@ -752,7 +984,6 @@ function getThumbnailCandidates(url, platform, customThumb){
       out.push(`https://i.ytimg.com/vi/${id}/sddefault.jpg`);
       out.push(`https://i.ytimg.com/vi/${id}/hqdefault.jpg`);
       out.push(`https://i.ytimg.com/vi/${id}/mqdefault.jpg`);
-      out.push(`https://img.youtube.com/vi/${id}/hqdefault.jpg`);
     }
   } else if (platform==='instagram'){
     const sc = extractInstagramShortcode(url);
@@ -774,7 +1005,6 @@ function getThumbnailCandidates(url, platform, customThumb){
   }
   return out.filter(Boolean);
 }
-
 function renderThumbImg(candidates, platform, className, extraHtml){
   const fallbackIcons = {youtube:'fab fa-youtube',instagram:'fab fa-instagram',tiktok:'fab fa-tiktok',twitter:'fab fa-twitter',other:'fas fa-link'};
   const icon = fallbackIcons[platform] || fallbackIcons.other;
@@ -782,14 +1012,10 @@ function renderThumbImg(candidates, platform, className, extraHtml){
   const dataAttr = encodeURIComponent(JSON.stringify(candidates));
   return `<div class="thumb-holder" data-candidates="${dataAttr}" style="position:absolute;inset:0;">
     <img class="${className}" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
-    <div class="thumbnail-fallback">
-      <i class="${icon}"></i>
-      <span>${badge}</span>
-    </div>
+    <div class="thumbnail-fallback"><i class="${icon}"></i><span>${badge}</span></div>
     ${extraHtml||''}
   </div>`;
 }
-
 function activateThumbnails(root){
   (root || document).querySelectorAll('.thumb-holder').forEach(holder=>{
     if (holder.dataset.active) return;
@@ -798,29 +1024,21 @@ function activateThumbnails(root){
     try { candidates = JSON.parse(decodeURIComponent(holder.dataset.candidates||'[]')); } catch(e){}
     const img = holder.querySelector('img');
     const fallback = holder.querySelector('.thumbnail-fallback');
-    if (!candidates.length) return;
+    if (!candidates.length){ holder.dataset.resolved='1'; return; }
     let idx = 0;
     function markResolved(){
-      img.style.display='block';
-      fallback.style.display='none';
-      holder.dataset.resolved = '1';
+      img.style.display='block'; fallback.style.display='none'; holder.dataset.resolved = '1';
     }
     function tryNext(){
       if (idx >= candidates.length){
-        img.style.display='none';
-        fallback.style.display='flex';
-        holder.dataset.resolved = '1';
-        return;
+        img.style.display='none'; fallback.style.display='flex'; holder.dataset.resolved='1'; return;
       }
       const url = candidates[idx++];
       if (url.includes('/oembed') || url.includes('react-tweet')){
         fetch(url).then(r=>r.json()).then(data=>{
           const t = data.thumbnail_url || data.thumbnail || (data.data && data.data.thumbnail_url);
-          if (t){
-            img.onload = markResolved;
-            img.onerror = tryNext;
-            img.src = t;
-          } else tryNext();
+          if (t){ img.onload = markResolved; img.onerror = tryNext; img.src = t; }
+          else tryNext();
         }).catch(()=>tryNext());
         return;
       }
@@ -831,32 +1049,23 @@ function activateThumbnails(root){
     tryNext();
   });
 }
-
-function getThumbnail(url, platform, customThumb){
-  const c = getThumbnailCandidates(url, platform, customThumb);
-  return c.length ? c[0] : null;
-}
-
-/* Live preview */
 let previewTimer = null;
 function previewThumb(){
   clearTimeout(previewTimer);
   previewTimer = setTimeout(()=>{
-    const url = document.getElementById('urlInput').value.trim();
+    const url = document.getElementById('urlInput').value.trim().split('\n')[0];
     const custom = document.getElementById('thumbInput').value.trim();
     const box = document.getElementById('thumbPreview');
     const dbg = document.getElementById('thumbDebug');
     if (!url && !custom){
       box.innerHTML = `<div style="text-align:center;"><i class="fas fa-image" style="font-size:2rem;opacity:.4;"></i><p style="font-size:.8rem;margin-top:8px;">Belum ada preview</p></div>`;
-      dbg.textContent = '';
-      return;
+      dbg.textContent = ''; return;
     }
     const platform = detectPlatform(url);
     const candidates = getThumbnailCandidates(url, platform, custom);
     if (!candidates.length){
-      box.innerHTML = `<div style="text-align:center;"><i class="fas fa-image" style="font-size:2rem;opacity:.4;"></i><p style="font-size:.8rem;margin-top:8px;">Tidak ada kandidat thumbnail</p></div>`;
-      dbg.textContent = `platform: ${platform} — tidak ada kandidat`;
-      return;
+      box.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:.85rem;">Tidak ada kandidat thumbnail</div>`;
+      dbg.textContent = `platform: ${platform} — no candidates`; return;
     }
     box.innerHTML = renderThumbImg(candidates, platform, 'thumbnail');
     activateThumbnails(box);
@@ -865,6 +1074,13 @@ function previewThumb(){
 }
 
 /* ================= RENDER CARD ================= */
+function highlight(text, q){
+  if (!q) return escapeHtml(text);
+  const safe = escapeHtml(text);
+  const re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')', 'gi');
+  return safe.replace(re, '<mark>$1</mark>');
+}
+
 function renderCard(card, view='grid'){
   const [type, category] = (card.template||'LINK -> OTHER').split('->').map(s=>s.trim());
   const platformIcon = getPlatformIcon(card.platform);
@@ -872,23 +1088,32 @@ function renderCard(card, view='grid'){
   const isVideo = card.platform==='youtube'||card.platform==='tiktok';
   const safeUrl = (card.url||'').replace(/'/g,"\\'").replace(/"/g,'\\"');
   const folderObj = card.folderId ? folders.find(f=>f.id===card.folderId) : null;
-  const folderChip = folderObj ? `<div class="folder-chip"><i class="fas fa-folder"></i> ${escapeHtml(folderObj.name)}</div>` : '';
+  const folderColor = folderObj?.color || 'var(--primary)';
+  const folderChip = folderObj ? `<div class="folder-chip" style="color:${folderColor}"><i class="fas fa-folder"></i> ${escapeHtml(folderObj.name)}</div>` : '';
   const candidates = getThumbnailCandidates(card.url, card.platform, card.thumbnail || null);
   const thumbHolder = renderThumbImg(candidates, card.platform, 'thumbnail', isVideo?'<div class="play-overlay"><i class="fas fa-play"></i></div>':'');
+  const isSelected = selectedCards.has(card.id);
+  const q = searchQuery;
 
   if (view==='list'){
-    return `<div class="list-item" onclick="goToRedirect('${safeUrl}')">
+    return `<div class="list-item ${isSelected?'selected':''}" 
+      data-card-id="${card.id}"
+      draggable="true"
+      onclick="onCardClick(event, '${card.id}')">
       <div class="list-thumb-wrap">${thumbHolder}</div>
       <div class="list-info">
-        <div class="list-title">${escapeHtml(card.description)||'Untitled'}</div>
+        <div class="list-title">${highlight(card.description||'Untitled', q)}</div>
         <div class="list-meta">
           <span><i class="${platformIcon}"></i> ${platformBadge}</span>
           <span><i class="fas fa-tag"></i> ${escapeHtml(type)} → ${escapeHtml(category)}</span>
-          ${folderObj?`<span><i class="fas fa-folder" style="color:#ffb020"></i> ${escapeHtml(folderObj.name)}</span>`:''}
+          ${folderObj?`<span style="color:${folderColor}"><i class="fas fa-folder"></i> ${escapeHtml(folderObj.name)}</span>`:''}
           <span><i class="fas fa-calendar"></i> ${card.date||''}</span>
+          ${card.starred?'<span style="color:var(--star)"><i class="fas fa-star"></i></span>':''}
         </div>
       </div>
       <div class="list-actions">
+        <button class="list-btn star ${card.starred?'active':''}" title="Star" onclick="event.stopPropagation();toggleStar('${card.id}')"><i class="fas fa-star"></i></button>
+        <button class="list-btn pin ${card.pinned?'active':''}" title="Pin" onclick="event.stopPropagation();togglePin('${card.id}')"><i class="fas fa-thumbtack"></i></button>
         <button class="list-btn folder" title="Pindah folder" onclick="event.stopPropagation();openFolderModal('${card.id}')"><i class="fas fa-folder-open"></i></button>
         <button class="list-btn view" onclick="event.stopPropagation();goToRedirect('${safeUrl}')"><i class="fas fa-external-link-alt"></i></button>
         <button class="list-btn delete" onclick="event.stopPropagation();deleteCard('${card.id}')"><i class="fas fa-trash"></i></button>
@@ -896,15 +1121,22 @@ function renderCard(card, view='grid'){
     </div>`;
   }
 
-  return `<div class="preview-card" onclick="goToRedirect('${safeUrl}')" data-id="${card.id}">
-    <button class="delete-btn" onclick="event.stopPropagation();deleteCard('${card.id}')"><i class="fas fa-trash"></i></button>
+  return `<div class="preview-card ${isSelected?'selected':''}" 
+    data-card-id="${card.id}"
+    draggable="true"
+    onclick="onCardClick(event, '${card.id}')">
+    <div class="card-actions">
+      <button class="card-act star ${card.starred?'active':''}" onclick="event.stopPropagation();toggleStar('${card.id}')" title="Star"><i class="fas fa-star"></i></button>
+      <button class="card-act pin ${card.pinned?'active':''}" onclick="event.stopPropagation();togglePin('${card.id}')" title="Pin"><i class="fas fa-thumbtack"></i></button>
+      <button class="card-act del" onclick="event.stopPropagation();deleteCard('${card.id}')" title="Hapus"><i class="fas fa-trash"></i></button>
+    </div>
     ${folderChip}
     <div class="card-badge ${card.platform}">${platformBadge}</div>
     <div class="thumbnail-container">${thumbHolder}</div>
     <div class="card-content">
-      <div class="card-title">${escapeHtml(card.description)||'Untitled Content'}</div>
+      <div class="card-title">${highlight(card.description||'Untitled Content', q)}</div>
       <span class="card-template">${escapeHtml(type)} → ${escapeHtml(category)}</span>
-      <div class="card-description">${escapeHtml(card.description)||'Click to view this content'}</div>
+      <div class="card-description">${highlight(card.description||'Click to view this content', q)}</div>
       <div class="card-meta">
         ${(card.tags||[]).slice(0,3).map(t=>`<span class="meta-tag"><i class="fas fa-hashtag"></i>${escapeHtml(t)}</span>`).join('')}
         <span class="meta-tag"><i class="fas fa-calendar"></i>${card.date||''}</span>
@@ -917,6 +1149,7 @@ function renderCard(card, view='grid'){
         </div>
       </div>
     </div>
+    ${card.pinned?'<i class="fas fa-thumbtack pin-marker"></i>':''}
   </div>`;
 }
 function getPlatformIcon(p){
@@ -925,11 +1158,197 @@ function getPlatformIcon(p){
 }
 function getPlatformBadge(p){ return p ? p.charAt(0).toUpperCase()+p.slice(1) : 'Link'; }
 
+/* ================= CARD CLICK (multi-select aware) ================= */
+function onCardClick(e, id){
+  // Multi-select: Ctrl/Cmd/Shift + click
+  if (e.ctrlKey || e.metaKey || e.shiftKey){
+    toggleSelection(id);
+    return;
+  }
+  // If selection active, treat click as toggle
+  if (selectedCards.size > 0){
+    toggleSelection(id);
+    return;
+  }
+  // Normal click → redirect
+  const card = cards.find(c=>c.id===id);
+  if (card) goToRedirect(card.url);
+}
+
+/* ================= SELECTION ================= */
+function toggleSelection(id){
+  if (selectedCards.has(id)) selectedCards.delete(id);
+  else selectedCards.add(id);
+  updateBatchBar();
+  updateCardSelectionUI();
+}
+function updateCardSelectionUI(){
+  document.querySelectorAll('[data-card-id]').forEach(el=>{
+    el.classList.toggle('selected', selectedCards.has(el.dataset.cardId));
+  });
+}
+function selectAll(){
+  const filtered = getFilteredCards();
+  filtered.forEach(c=>selectedCards.add(c.id));
+  updateBatchBar();
+  updateCardSelectionUI();
+}
+function clearSelection(){
+  selectedCards.clear();
+  updateBatchBar();
+  updateCardSelectionUI();
+}
+function updateBatchBar(){
+  const bar = document.getElementById('batchBar');
+  const cnt = document.getElementById('batchCount');
+  if (selectedCards.size === 0){
+    bar.classList.remove('show');
+  } else {
+    bar.classList.add('show');
+    cnt.textContent = `${selectedCards.size} dipilih`;
+  }
+}
+function batchDelete(){
+  if (!selectedCards.size) return;
+  if (!confirm(`Hapus ${selectedCards.size} link?`)) return;
+  const ids = [...selectedCards];
+  const removed = cards.filter(c=>ids.includes(c.id));
+  cards = cards.filter(c=>!ids.includes(c.id));
+  saveCards();
+  clearSelection();
+  refreshAllUI();
+  showUndoToast(`Hapus ${removed.length} link`, ()=>{
+    cards = [...removed, ...cards];
+    saveCards(); refreshAllUI();
+    showToast('Dikembalikan', 'success');
+  });
+}
+function batchStar(){
+  if (!selectedCards.size) return;
+  selectedCards.forEach(id=>{
+    const c = cards.find(x=>x.id===id);
+    if (c) c.starred = true;
+  });
+  saveCards();
+  const n = selectedCards.size;
+  clearSelection();
+  refreshAllUI();
+  showToast(`${n} link di-star`, 'success');
+}
+function batchMoveToFolder(){
+  if (!selectedCards.size) return;
+  const modal = document.getElementById('folderModal');
+  pendingCardIdForFolder = '__BATCH__';
+  document.getElementById('folderModalTitle').textContent = `Pindah ${selectedCards.size} link`;
+  const container = document.getElementById('folderOptions');
+  let html = `<div class="folder-option" data-id="" onclick="selectFolderOption(this)"><i class="fas fa-ban" style="color:#bbb"></i> — Tanpa folder —</div>`;
+  html += folders.map(f=>`<div class="folder-option" data-id="${f.id}" onclick="selectFolderOption(this)"><span class="folder-dot" style="background:${f.color||'var(--primary)'}"></span> ${escapeHtml(f.name)}</div>`).join('');
+  if (!folders.length) html += `<p style="font-size:.85rem;color:var(--muted);padding:6px 0;">Belum ada folder.</p>`;
+  container.innerHTML = html;
+  modal.classList.add('active');
+}
+
+/* Override confirmFolderAssign untuk handle batch */
+const _origConfirm = confirmFolderAssign;
+confirmFolderAssign = function(){
+  if (pendingCardIdForFolder === '__BATCH__'){
+    const selected = document.querySelector('.folder-option.selected');
+    if (!selected){ showToast('Pilih folder dulu', 'error'); return; }
+    const folderId = selected.dataset.id || '';
+    selectedCards.forEach(id=>{
+      const c = cards.find(x=>x.id===id);
+      if (c){
+        if (folderId) c.folderId = folderId;
+        else delete c.folderId;
+      }
+    });
+    saveCards();
+    const n = selectedCards.size;
+    closeFolderModal();
+    clearSelection();
+    refreshAllUI();
+    showToast(`${n} link dipindahkan`, 'success');
+    return;
+  }
+  _origConfirm();
+};
+
+/* ================= STAR / PIN ================= */
+function toggleStar(id){
+  const c = cards.find(x=>x.id===id);
+  if (!c) return;
+  c.starred = !c.starred;
+  saveCards(); refreshAllUI();
+  showToast(c.starred?'Ditambahkan ke starred':'Dihapus dari starred', 'info');
+}
+function togglePin(id){
+  const c = cards.find(x=>x.id===id);
+  if (!c) return;
+  c.pinned = !c.pinned;
+  saveCards(); refreshAllUI();
+  showToast(c.pinned?'Dipin ke atas':'Unpin', 'info');
+}
+
+/* ================= DRAG & DROP ================= */
+function bindDragDrop(root){
+  (root || document).querySelectorAll('[data-card-id]').forEach(el=>{
+    if (el.dataset.dragbound) return;
+    el.dataset.dragbound = '1';
+    el.addEventListener('dragstart', (e)=>{
+      el.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', el.dataset.cardId);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', ()=> el.classList.remove('dragging'));
+    el.addEventListener('dragover', (e)=>{
+      e.preventDefault();
+      el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', ()=> el.classList.remove('drag-over'));
+    el.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      const srcId = e.dataTransfer.getData('text/plain');
+      const dstId = el.dataset.cardId;
+      if (!srcId || srcId===dstId) return;
+      reorderCards(srcId, dstId);
+    });
+  });
+}
+function reorderCards(srcId, dstId){
+  const srcIdx = cards.findIndex(c=>c.id===srcId);
+  const dstIdx = cards.findIndex(c=>c.id===dstId);
+  if (srcIdx<0 || dstIdx<0) return;
+  const [moved] = cards.splice(srcIdx,1);
+  cards.splice(dstIdx,0,moved);
+  saveCards(); refreshAllUI();
+  showToast('Urutan diperbarui', 'success');
+}
+
+/* ================= SORT ================= */
+function onSortChange(){ renderContentPages(); }
+function sortCards(list){
+  const sort = document.getElementById('sortSelect')?.value || 'newest';
+  const sorted = list.slice();
+  // Pinned always first
+  sorted.sort((a,b)=>{
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return 0;
+  });
+  if (sort==='newest') sorted.sort((a,b)=> (b.id > a.id ? 1 : -1));
+  if (sort==='oldest') sorted.sort((a,b)=> (a.id > b.id ? 1 : -1));
+  if (sort==='az') sorted.sort((a,b)=> (a.description||'').localeCompare(b.description||''));
+  if (sort==='platform') sorted.sort((a,b)=> (a.platform||'').localeCompare(b.platform||''));
+  return sorted;
+}
+
 /* ================= FILTER + SEARCH ================= */
 function getFilteredCards(){
   let list = cards.slice();
   if (currentFolder!=='all') list = list.filter(c=>c.folderId===currentFolder);
-  if (currentFilter!=='all') list = list.filter(c=>c.platform===currentFilter);
+  if (currentFilter==='starred') list = list.filter(c=>c.starred);
+  else if (currentFilter!=='all') list = list.filter(c=>c.platform===currentFilter);
   if (searchQuery){
     const q = searchQuery.toLowerCase();
     list = list.filter(c =>
@@ -939,7 +1358,7 @@ function getFilteredCards(){
       (c.tags||[]).some(t=>t.toLowerCase().includes(q))
     );
   }
-  return list;
+  return sortCards(list);
 }
 function filterCards(filter, el){
   currentFilter = filter;
@@ -957,14 +1376,15 @@ function onSearch(){
 }
 function switchView(view, el){
   currentView = view;
-  currentPage = (view==='grid') ? 'grid' : 'list';
+  if (view==='list') currentPage = 'list';
+  else currentPage = 'grid';
   document.querySelectorAll('.menu-item').forEach(i=>{
     i.classList.toggle('active', i.dataset.page === currentPage);
   });
   document.querySelectorAll('.page').forEach(p=>{
     p.classList.toggle('active', p.id === 'page-'+currentPage);
   });
-  document.querySelectorAll('.view-btn').forEach(b=>{
+  document.querySelectorAll('.toolbar-btn[data-view]').forEach(b=>{
     b.classList.toggle('active', b.dataset.view === view);
   });
   updatePageTitle();
@@ -977,24 +1397,28 @@ function renderContentPages(){
 
   const gridC = document.getElementById('gridContainer');
   const gridE = document.getElementById('gridEmpty');
+  const listC = document.getElementById('listContainer');
+  const listE = document.getElementById('listEmpty');
+
+  // Grid
   if (filtered.length){
+    gridC.className = 'cards-grid' + (currentView==='compact' ? ' compact-mode' : '');
     gridC.innerHTML = filtered.map(c=>renderCard(c,'grid')).join('');
     gridE.style.display='none';
     activateThumbnails(gridC);
+    bindDragDrop(gridC);
   } else {
-    gridC.innerHTML='';
-    gridE.style.display='block';
+    gridC.innerHTML=''; gridE.style.display='block';
   }
 
-  const listC = document.getElementById('listContainer');
-  const listE = document.getElementById('listEmpty');
+  // List
   if (filtered.length){
     listC.innerHTML = filtered.map(c=>renderCard(c,'list')).join('');
     listE.style.display='none';
     activateThumbnails(listC);
+    bindDragDrop(listC);
   } else {
-    listC.innerHTML='';
-    listE.style.display='block';
+    listC.innerHTML=''; listE.style.display='block';
   }
 
   const lbl = document.getElementById('activeFolderLabel');
@@ -1005,22 +1429,23 @@ function renderContentPages(){
       lbl.style.display = 'inline';
     } else lbl.style.display='none';
   }
-
+  updateCardSelectionUI();
   renderDashboardRecent();
 }
 function renderDashboardRecent(){
   const container = document.getElementById('dashboardRecent');
   if (!container) return;
-  const recent = cards.slice(0,3);
+  const recent = sortCards(cards).slice(0,3);
   if (!recent.length){
     container.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:40px;"><i class="fas fa-plus-circle"></i><h2>No links yet</h2><p>Add your first link to see it here</p><button class="empty-cta" onclick="navigateTo('add')"><i class="fas fa-plus"></i> Add Link</button></div>`;
   } else {
     container.innerHTML = recent.map(c=>renderCard(c,'grid')).join('');
     activateThumbnails(container);
+    bindDragDrop(container);
   }
 }
 
-/* ================= ADD / DELETE ================= */
+/* ================= ADD ================= */
 function setTemplate(t, el){
   document.querySelectorAll('.template-btn').forEach(b=>b.classList.remove('active'));
   if (el) el.classList.add('active');
@@ -1028,43 +1453,69 @@ function setTemplate(t, el){
   input.value = (t==='CUSTOM') ? '' : t;
   if (t==='CUSTOM') input.focus();
 }
+function isValidUrl(u){
+  try { new URL(u); return true; } catch { return false; }
+}
 function addCard(){
-  let url = document.getElementById('urlInput').value.trim();
+  const rawText = document.getElementById('urlInput').value.trim();
+  if (!rawText){ showToast('URL wajib diisi!', 'error'); return; }
   const template = document.getElementById('templateInput').value.trim() || 'LINK -> OTHER';
   const description = document.getElementById('descInput').value.trim();
   const tagsRaw = document.getElementById('tagsInput').value;
   const customThumb = document.getElementById('thumbInput').value.trim();
   const folderId = document.getElementById('folderInput').value;
 
-  if (!url){ showToast('URL wajib diisi!', 'error'); return; }
-  if (!/^https?:\/\//i.test(url)) url = 'https://'+url;
+  // Split multi-line
+  const urls = rawText.split(/[\n,\s]+/).map(s=>s.trim()).filter(Boolean);
+  let added = 0, dup = 0, invalid = 0;
 
-  const platform = detectPlatform(url);
-  const thumbnail = getThumbnail(url, platform, customThumb) || customThumb || null;
+  urls.forEach(rawUrl=>{
+    let url = rawUrl;
+    if (!/^https?:\/\//i.test(url)) url = 'https://'+url;
+    if (!isValidUrl(url)){ invalid++; return; }
 
-  const card = {
-    id: 'c'+Date.now()+Math.floor(Math.random()*1000),
-    url, template, description,
-    tags: tagsRaw.split(',').map(t=>t.trim()).filter(Boolean),
-    platform, thumbnail,
-    folderId: folderId || undefined,
-    date: new Date().toLocaleDateString()
-  };
+    // duplicate check
+    if (cards.some(c=>c.url===url)){ dup++; return; }
 
-  cards.unshift(card);
+    const platform = detectPlatform(url);
+    const thumbnail = getThumbnail(url, platform, customThumb) || customThumb || null;
+    const card = {
+      id: 'c'+Date.now()+Math.floor(Math.random()*10000),
+      url, template, description,
+      tags: tagsRaw.split(',').map(t=>t.trim()).filter(Boolean),
+      platform, thumbnail,
+      folderId: folderId || undefined,
+      date: new Date().toLocaleDateString(),
+      starred: false, pinned: false
+    };
+    cards.unshift(card);
+    added++;
+  });
+
+  if (!added && !dup && !invalid){ showToast('Tidak ada URL valid', 'error'); return; }
+
   saveCards();
   currentFolder='all'; currentFilter='all';
   clearForm();
   refreshAllUI();
-  showToast('Link berhasil ditambahkan!', 'success');
-  navigateTo('grid');
+  let msg = `${added} link ditambahkan`;
+  if (dup) msg += `, ${dup} duplikat`;
+  if (invalid) msg += `, ${invalid} invalid`;
+  showToast(msg, added?'success':'warning');
+  if (added) navigateTo('grid');
 }
 function deleteCard(id){
   if (!confirm('Hapus link ini?')) return;
+  const card = cards.find(c=>c.id===id);
+  if (!card) return;
   cards = cards.filter(c=>c.id!==id);
   saveCards();
   refreshAllUI();
-  showToast('Link dihapus', 'info');
+  showUndoToast('Link dihapus', ()=>{
+    cards.unshift(card);
+    saveCards(); refreshAllUI();
+    showToast('Dikembalikan', 'success');
+  });
 }
 function clearForm(){
   ['urlInput','descInput','tagsInput','thumbInput'].forEach(id=>document.getElementById(id).value='');
@@ -1085,40 +1536,27 @@ function updateStats(){
   if (el('statTotal')) el('statTotal').textContent = cards.length;
   if (el('statYouTube')) el('statYouTube').textContent = cards.filter(c=>c.platform==='youtube').length;
   if (el('statInstagram')) el('statInstagram').textContent = cards.filter(c=>c.platform==='instagram').length;
-  if (el('statTikTok')) el('statTikTok').textContent = cards.filter(c=>c.platform==='tiktok').length;
+  if (el('statStarred')) el('statStarred').textContent = cards.filter(c=>c.starred).length;
 }
 function updateBadge(){
   const b = document.getElementById('gridBadge');
   if (b) b.textContent = cards.length;
 }
 
-/* ================= REDIRECT — NEW TAB DEFAULT ================= */
+/* ================= REDIRECT ================= */
 function openUrl(url){
-  // default: NEW TAB. Hanya same-tab kalau user set sameTab=true
-  if (settings.sameTab){
-    window.location.href = url;
-    return true;
-  }
+  if (settings.sameTab){ window.location.href = url; return true; }
   const w = window.open(url, '_blank', 'noopener,noreferrer');
-  if (!w || w.closed || typeof w.closed === 'undefined'){
-    // popup diblokir
-    return false;
-  }
+  if (!w || w.closed || typeof w.closed === 'undefined') return false;
   return true;
 }
-
 function goToRedirect(url){
   if (!url) return;
-
-  // auto-redirect: langsung buka
   if (settings.autoRedirect){
     const ok = openUrl(url);
-    if (!ok){
-      showToast('Popup diblokir — klik link sekali lagi', 'error');
-    }
+    if (!ok) showToast('Popup diblokir — klik link sekali lagi', 'error');
     return;
   }
-
   targetUrl = url;
   const ov = document.getElementById('redirectOverlay');
   const pb = document.getElementById('progressBar');
@@ -1126,27 +1564,17 @@ function goToRedirect(url){
   document.getElementById('redirectBlocked').classList.remove('show');
   pb.classList.remove('animating'); void pb.offsetWidth; pb.classList.add('animating');
   ov.classList.add('active');
-
-  // buka otomatis dalam 1.5 detik
   redirectTimer = setTimeout(()=>{
     const ok = openUrl(targetUrl);
-    if (!ok){
-      // popup diblokir → tampilkan notice, user klik "Buka Sekarang"
-      document.getElementById('redirectBlocked').classList.add('show');
-      return; // jangan tutup overlay
-    }
+    if (!ok){ document.getElementById('redirectBlocked').classList.add('show'); return; }
     ov.classList.remove('active');
   }, 1500);
 }
-
 function openNow(){
   clearTimeout(redirectTimer);
   if (targetUrl){
     const ok = openUrl(targetUrl);
-    if (!ok){
-      document.getElementById('redirectBlocked').classList.add('show');
-      return;
-    }
+    if (!ok){ document.getElementById('redirectBlocked').classList.add('show'); return; }
   }
   document.getElementById('redirectOverlay').classList.remove('active');
 }
@@ -1156,49 +1584,144 @@ function skipRedirect(){
   targetUrl = '';
 }
 
+/* ================= DARK MODE ================= */
+function toggleDarkMode(){
+  settings.darkMode = !settings.darkMode;
+  document.body.classList.toggle('dark', settings.darkMode);
+  document.getElementById('toggleDark')?.classList.toggle('active', settings.darkMode);
+  const ic = document.getElementById('darkIcon');
+  if (ic) ic.className = settings.darkMode ? 'fas fa-sun' : 'fas fa-moon';
+  localStorage.setItem('linkPreviewSettings', JSON.stringify(settings));
+  showToast(`Dark mode ${settings.darkMode?'aktif':'nonaktif'}`, 'info');
+}
+
+/* ================= COMMAND PALETTE ================= */
+function openCmdk(){
+  document.getElementById('cmdkOverlay').classList.add('active');
+  document.getElementById('cmdkInput').value = '';
+  cmdkActiveIdx = 0;
+  renderCmdk();
+  setTimeout(()=>document.getElementById('cmdkInput').focus(),50);
+}
+function closeCmdk(){
+  document.getElementById('cmdkOverlay').classList.remove('active');
+}
+function renderCmdk(){
+  const q = document.getElementById('cmdkInput').value.toLowerCase().trim();
+  const cmds = [
+    {icon:'fa-home', label:'Dashboard', action:()=>navigateTo('dashboard'), hint:'Page'},
+    {icon:'fa-plus-circle', label:'Add New Link', action:()=>navigateTo('add'), hint:'N'},
+    {icon:'fa-th-large', label:'Grid View', action:()=>switchView('grid',null), hint:'G'},
+    {icon:'fa-list', label:'List View', action:()=>switchView('list',null), hint:'L'},
+    {icon:'fa-cog', label:'Settings', action:()=>navigateTo('settings'), hint:'Page'},
+    {icon:'fa-moon', label:'Toggle Dark Mode', action:()=>toggleDarkMode(), hint:''},
+    {icon:'fa-folder-plus', label:'New Folder', action:()=>{closeCmdk(); openNewFolderModal();}, hint:''},
+    {icon:'fa-code', label:'Generate Share Code', action:()=>{closeCmdk(); navigateTo('dashboard'); setTimeout(generateShareCode,300);}, hint:''},
+    {icon:'fa-file-export', label:'Export JSON', action:()=>{closeCmdk(); exportToFile();}, hint:''},
+    {icon:'fa-code', label:'Export HTML', action:()=>{closeCmdk(); exportToHTML();}, hint:''},
+    {icon:'fa-star', label:'Show Starred', action:()=>{closeCmdk(); filterCards('starred', document.querySelector('.filter-chip[data-filter="starred"]')); navigateTo('grid');}, hint:''},
+    {icon:'fa-trash', label:'Clear All Data', action:()=>{closeCmdk(); clearAllData();}, hint:''}
+  ];
+  // Folder commands
+  folders.forEach(f=>{
+    cmds.push({icon:'fa-folder', label:`Folder: ${f.name}`, action:()=>{closeCmdk(); selectFolder(f.id);}, hint:'Folder'});
+  });
+  // Card commands (search)
+  if (q.length > 1){
+    cards.filter(c=>(c.description||'').toLowerCase().includes(q) || (c.url||'').toLowerCase().includes(q)).slice(0,5).forEach(c=>{
+      cmds.push({icon:'fa-external-link-alt', label:`Open: ${c.description||c.url}`.slice(0,60), action:()=>{closeCmdk(); goToRedirect(c.url);}, hint:'Link'});
+    });
+  }
+  cmdkCommands = cmds.filter(c=> !q || c.label.toLowerCase().includes(q) || c.hint.toLowerCase().includes(q));
+  if (cmdkActiveIdx >= cmdkCommands.length) cmdkActiveIdx = 0;
+  const list = document.getElementById('cmdkList');
+  if (!cmdkCommands.length){
+    list.innerHTML = `<div class="cmdk-empty">Tidak ada hasil untuk "${escapeHtml(q)}"</div>`;
+    return;
+  }
+  list.innerHTML = cmdkCommands.map((c,i)=>`
+    <div class="cmdk-item ${i===cmdkActiveIdx?'active':''}" onclick="execCmdk(${i})">
+      <i class="fas ${c.icon}"></i>
+      <span>${escapeHtml(c.label)}</span>
+      ${c.hint?`<span class="cmdk-hint">${escapeHtml(c.hint)}</span>`:''}
+    </div>
+  `).join('');
+}
+function highlightCmdk(){
+  const items = document.querySelectorAll('.cmdk-item');
+  items.forEach((el,i)=>el.classList.toggle('active', i===cmdkActiveIdx));
+  if (items[cmdkActiveIdx]) items[cmdkActiveIdx].scrollIntoView({block:'nearest'});
+}
+function execCmdk(i){
+  const cmd = cmdkCommands[i];
+  if (cmd) cmd.action();
+}
+
+/* ================= TOAST + UNDO ================= */
+function showToast(msg, type='success'){
+  const t = document.getElementById('toast');
+  if (!t) return;
+  const icons = {success:'fa-check-circle', error:'fa-exclamation-circle', info:'fa-info-circle', warning:'fa-exclamation-triangle'};
+  t.className = 'toast ' + type;
+  t.innerHTML = `<i class="fas ${icons[type]||icons.success}"></i><span class="toast-msg">${escapeHtml(msg)}</span>`;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function showUndoToast(msg, undoFn){
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.className = 'toast info';
+  t.innerHTML = `<i class="fas fa-info-circle"></i><span class="toast-msg">${escapeHtml(msg)}</span><button class="toast-action" onclick="execUndo()">Undo</button>`;
+  undoBuffer = undoFn;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>{ t.classList.remove('show'); undoBuffer=null; }, 5000);
+}
+function execUndo(){
+  if (undoBuffer){ undoBuffer(); undoBuffer=null; }
+  document.getElementById('toast').classList.remove('show');
+}
+
 /* ================= SHARE CODE ================= */
 function packCards(){
-  return cards.map(c=>[c.url, c.template, c.description||'', (c.tags||[]).join('|'), c.platform, c.folderId||'', c.date||'']);
+  return cards.map(c=>[c.url, c.template, c.description||'', (c.tags||[]).join('|'), c.platform, c.folderId||'', c.date||'', c.starred?1:0, c.pinned?1:0]);
 }
 function unpackCards(arr){
   return arr.map((a,i)=>({
-    id: 'c'+Date.now()+i+Math.floor(Math.random()*1000),
-    url: a[0] || '',
-    template: a[1] || 'LINK -> OTHER',
-    description: a[2] || '',
-    tags: a[3] ? a[3].split('|').filter(Boolean) : [],
-    platform: a[4] || detectPlatform(a[0]||''),
-    folderId: a[5] || undefined,
-    thumbnail: null,
-    date: a[6] || new Date().toLocaleDateString()
+    id: 'c'+Date.now()+i+Math.floor(Math.random()*10000),
+    url: a[0]||'', template: a[1]||'LINK -> OTHER', description: a[2]||'',
+    tags: a[3]?a[3].split('|').filter(Boolean):[],
+    platform: a[4]||detectPlatform(a[0]||''),
+    folderId: a[5]||undefined, thumbnail: null,
+    date: a[6]||new Date().toLocaleDateString(),
+    starred: !!a[7], pinned: !!a[8]
   }));
 }
 function compressRLE(str){ return str.replace(/(.)\1{2,}/g, (m,ch)=>ch+'\u0001'+m.length); }
 function decompressRLE(str){ return str.replace(/(.)\u0001(\d+)/g, (m,ch,n)=>ch.repeat(+n)); }
 function b64urlEncode(str){
-  const bytes = new TextEncoder().encode(str);
-  let bin = '';
+  const bytes = new TextEncoder().encode(str); let bin='';
   bytes.forEach(b=> bin += String.fromCharCode(b));
   return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
 function b64urlDecode(str){
   let s = str.replace(/-/g,'+').replace(/_/g,'/');
   while (s.length%4) s+='=';
-  const bin = atob(s);
-  const bytes = new Uint8Array(bin.length);
+  const bin = atob(s); const bytes = new Uint8Array(bin.length);
   for (let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
   return new TextDecoder().decode(bytes);
 }
 function generateShareCode(){
-  if (!cards.length){ showToast('Belum ada link untuk dibagikan!', 'error'); return; }
+  if (!cards.length){ showToast('Belum ada link!', 'error'); return; }
   try {
-    const payload = JSON.stringify({v:2, c: packCards(), f: folders.map(f=>[f.id,f.name])});
+    const payload = JSON.stringify({v:3, c: packCards(), f: folders.map(f=>[f.id,f.name,f.color||''])});
     const code = b64urlEncode(compressRLE(payload));
     document.getElementById('shareCodeOutput').value = code;
     document.getElementById('generateBtn').style.display='none';
     document.getElementById('copyBtn').style.display='flex';
     showToast('Share code dibuat!', 'success');
-  } catch(e){ showToast('Gagal generate code', 'error'); console.error(e); }
+  } catch(e){ showToast('Gagal generate', 'error'); }
 }
 function copyShareCode(){
   const input = document.getElementById('shareCodeOutput');
@@ -1206,13 +1729,9 @@ function copyShareCode(){
   input.select();
   navigator.clipboard.writeText(input.value).then(()=>{
     const btn = document.getElementById('copyBtn');
-    const orig = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
     btn.classList.add('copied');
-    setTimeout(()=>{ btn.innerHTML=orig; btn.classList.remove('copied'); }, 1800);
-    showToast('Kode disalin!', 'success');
-  }).catch(()=>{
-    document.execCommand('copy');
+    setTimeout(()=>{ btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; btn.classList.remove('copied'); }, 1800);
     showToast('Kode disalin!', 'success');
   });
 }
@@ -1224,26 +1743,18 @@ function importFromCode(){
     const raw = decompressRLE(b64urlDecode(code));
     const data = JSON.parse(raw);
     let importedCards = [], importedFolders = [];
-
     if (Array.isArray(data)){
       importedCards = data.map((item,i)=>({
-        id: 'c'+Date.now()+i+Math.floor(Math.random()*1000),
-        url: item.u || item.url || '',
-        template: item.t || item.template || 'LINK -> OTHER',
-        description: item.d || item.description || '',
-        tags: item.g || item.tags || [],
-        platform: item.p || item.platform || detectPlatform(item.u||item.url||''),
-        folderId: item.f || item.folderId,
-        thumbnail: null,
-        date: item.dt || item.date || new Date().toLocaleDateString()
+        id:'c'+Date.now()+i, url:item.u||item.url||'', template:item.t||item.template||'LINK -> OTHER',
+        description:item.d||item.description||'', tags:item.g||item.tags||[],
+        platform:item.p||item.platform||detectPlatform(item.u||item.url||''),
+        folderId:item.f||item.folderId, thumbnail:null, date:item.dt||item.date||new Date().toLocaleDateString(),
+        starred:false, pinned:false
       }));
     } else if (data && data.c){
-      importedFolders = (data.f||[]).map(a=>({id:a[0], name:a[1]}));
+      importedFolders = (data.f||[]).map(a=>({id:a[0],name:a[1],color:a[2]||'#667eea'}));
       importedCards = unpackCards(data.c);
-    } else {
-      throw new Error('Format tidak dikenali');
-    }
-
+    } else throw new Error('bad');
     importedFolders.forEach(f=>{ if (!folders.find(x=>x.id===f.id)) folders.push(f); });
     cards = [...importedCards, ...cards];
     localStorage.setItem('mediaFolders', JSON.stringify(folders));
@@ -1252,21 +1763,41 @@ function importFromCode(){
     refreshAllUI();
     showToast(`Import sukses: ${importedCards.length} link!`, 'success');
     navigateTo('grid');
-  } catch(err){
-    console.error(err);
-    showToast('Kode tidak valid atau rusak!', 'error');
-  }
+  } catch(err){ showToast('Kode tidak valid!', 'error'); }
 }
 
-/* ================= FILE ================= */
+/* ================= EXPORT ================= */
 function exportToFile(){
   const data = JSON.stringify({cards, folders}, null, 2);
   const blob = new Blob([data], {type:'application/json'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'link-preview-backup.json'; a.click();
+  const a = document.createElement('a'); a.href=url; a.download='link-preview-backup.json'; a.click();
   URL.revokeObjectURL(url);
   showToast('Backup diexport', 'success');
+}
+function exportToHTML(){
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>My Links</title>
+<style>body{font-family:system-ui;background:#f4f6fb;padding:20px;max-width:1200px;margin:0 auto}
+h1{color:#667eea}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.08);text-decoration:none;color:#333;transition:.2s}
+.card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.card h3{margin:0 0 8px;font-size:1rem}.card p{color:#666;font-size:.85rem;margin:4px 0}
+.badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:.7rem;font-weight:700;color:#fff;margin-top:8px}
+.youtube{background:#f00}.instagram{background:linear-gradient(45deg,#f09433,#dc2743)}.tiktok{background:#000}.twitter{background:#1da1f2}.other{background:#667eea}
+</style></head><body>
+<h1>📚 My Links (${cards.length})</h1>
+<div class="grid">${cards.map(c=>`<a class="card" href="${c.url}" target="_blank" rel="noopener">
+<h3>${escapeHtml(c.description)||c.url}</h3>
+<p>${escapeHtml(c.template||'')}</p>
+<p>${c.date||''}${c.starred?' ⭐':''}</p>
+<span class="badge ${c.platform}">${c.platform.toUpperCase()}</span>
+</a>`).join('')}</div>
+</body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='my-links.html'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('HTML diexport!', 'success');
 }
 function importFromFile(input){
   const file = input.files[0]; if (!file) return;
@@ -1274,12 +1805,11 @@ function importFromFile(input){
   reader.onload = (e)=>{
     try {
       const data = JSON.parse(e.target.result);
-      if (Array.isArray(data)){ cards = data; }
+      if (Array.isArray(data)) cards = data;
       else if (data && data.cards){ cards = data.cards; folders = data.folders || []; }
       else throw new Error('bad');
       localStorage.setItem('mediaFolders', JSON.stringify(folders));
-      saveCards();
-      refreshAllUI();
+      saveCards(); refreshAllUI();
       showToast('Import file sukses', 'success');
     } catch(err){ showToast('File JSON tidak valid', 'error'); }
   };
@@ -1290,15 +1820,20 @@ function importFromFile(input){
 /* ================= SETTINGS ================= */
 function loadSettingsUI(){
   if (settings.autoRedirect) document.getElementById('toggleRedirect')?.classList.add('active');
-  if (settings.compactView) document.getElementById('toggleCompact')?.classList.add('active');
   if (settings.sameTab) document.getElementById('toggleSameTab')?.classList.add('active');
-  document.body.classList.toggle('compact', !!settings.compactView);
+  if (settings.darkMode) document.getElementById('toggleDark')?.classList.add('active');
+  const ic = document.getElementById('darkIcon');
+  if (ic) ic.className = settings.darkMode ? 'fas fa-sun' : 'fas fa-moon';
 }
 function toggleSetting(el, key){
   el.classList.toggle('active');
   settings[key] = el.classList.contains('active');
   localStorage.setItem('linkPreviewSettings', JSON.stringify(settings));
-  if (key==='compactView') document.body.classList.toggle('compact', settings.compactView);
+  if (key==='darkMode'){
+    document.body.classList.toggle('dark', settings.darkMode);
+    const ic = document.getElementById('darkIcon');
+    if (ic) ic.className = settings.darkMode ? 'fas fa-sun' : 'fas fa-moon';
+  }
   showToast(`${key} ${settings[key]?'aktif':'nonaktif'}`, 'info');
 }
 function clearAllData(){
@@ -1307,6 +1842,7 @@ function clearAllData(){
   localStorage.removeItem('mediaCards');
   localStorage.removeItem('mediaFolders');
   document.getElementById('searchInput').value='';
+  clearSelection();
   refreshAllUI();
   showToast('Semua data dihapus', 'info');
 }
@@ -1318,16 +1854,6 @@ function escapeHtml(text){
   const d = document.createElement('div');
   d.textContent = text;
   return d.innerHTML;
-}
-function showToast(msg, type='success'){
-  const t = document.getElementById('toast');
-  if (!t) return;
-  const icons = {success:'fa-check-circle', error:'fa-exclamation-circle', info:'fa-info-circle'};
-  t.className = 'toast ' + type;
-  t.innerHTML = `<i class="fas ${icons[type]||icons.success}"></i><span>${escapeHtml(msg)}</span>`;
-  t.classList.add('show');
-  clearTimeout(showToast._timer);
-  showToast._timer = setTimeout(()=>t.classList.remove('show'), 2600);
 }
 </script>
 
