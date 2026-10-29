@@ -124,12 +124,12 @@ textarea{resize:vertical;min-height:90px}
 .card-badge.twitter{background:#1da1f2}
 .card-badge.other{background:var(--primary)}
 .thumbnail-container{position:relative;width:100%;height:185px;overflow:hidden;background:linear-gradient(135deg,#667eea,#764ba2)}
-.thumbnail{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.thumbnail{width:100%;height:100%;object-fit:cover;transition:transform .5s;position:relative;z-index:1}
 .preview-card:hover .thumbnail{transform:scale(1.08)}
-.thumbnail-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;gap:8px}
+.thumbnail-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;gap:8px;z-index:0}
 .thumbnail-fallback i{font-size:2.8rem;opacity:.85}
 .thumbnail-fallback span{font-size:.85rem;opacity:.7}
-.play-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.3);transition:.25s;pointer-events:none}
+.play-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.3);transition:.25s;pointer-events:none;z-index:2}
 .play-overlay i{color:#ff0000;font-size:1.35rem;margin-left:3px}
 .preview-card:hover .play-overlay{transform:translate(-50%,-50%) scale(1.15)}
 .card-content{padding:20px}
@@ -154,7 +154,7 @@ textarea{resize:vertical;min-height:90px}
 .list-item{background:var(--card);border-radius:14px;padding:16px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);transition:.25s;cursor:pointer}
 .list-item:hover{transform:translateX(6px);box-shadow:0 10px 30px rgba(0,0,0,.1)}
 .list-thumb-wrap{position:relative;width:76px;height:76px;border-radius:12px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--primary),var(--primary-dark))}
-.list-thumb{width:100%;height:100%;object-fit:cover}
+.list-thumb{width:100%;height:100%;object-fit:cover;position:relative;z-index:1}
 .list-thumb-wrap .thumbnail-fallback i{font-size:1.8rem}
 .list-thumb-wrap .thumbnail-fallback span{display:none}
 .list-info{flex:1;min-width:0}
@@ -312,7 +312,7 @@ textarea{resize:vertical;min-height:90px}
   <div class="page" id="page-add">
     <div class="form-section">
       <h2 style="margin-bottom:22px;"><i class="fas fa-plus-circle" style="color:var(--primary)"></i> Add New Link</h2>
-      <div class="form-group"><label><i class="fas fa-globe"></i> Media URL</label><input type="url" id="urlInput" placeholder="https://..."></div>
+      <div class="form-group"><label><i class="fas fa-globe"></i> Media URL</label><input type="url" id="urlInput" placeholder="https://..." oninput="previewThumb()"></div>
       <div class="form-group">
         <label><i class="fas fa-heading"></i> Template</label>
         <div class="template-buttons">
@@ -333,9 +333,19 @@ textarea{resize:vertical;min-height:90px}
       </div>
       <div class="form-group">
         <label><i class="fas fa-image"></i> Custom Thumbnail URL (optional)</label>
-        <input type="url" id="thumbInput" placeholder="Kosongkan untuk auto-detect">
-        <p style="font-size:.78rem;color:#8a90a0;margin-top:5px;"><i class="fas fa-info-circle"></i> Untuk IG/TikTok, isi URL gambar langsung jika auto-detect gagal.</p>
+        <input type="url" id="thumbInput" placeholder="Kosongkan untuk auto-detect" oninput="previewThumb()">
+        <p style="font-size:.78rem;color:#8a90a0;margin-top:5px;"><i class="fas fa-info-circle"></i> Kosongkan → auto-detect. Kalau custom gagal load, fallback ke auto-detect.</p>
       </div>
+
+      <!-- LIVE PREVIEW -->
+      <div class="form-group">
+        <label><i class="fas fa-eye"></i> Thumbnail Preview</label>
+        <div id="thumbPreview" style="width:100%;height:180px;border-radius:12px;overflow:hidden;background:#f2f4f8;display:flex;align-items:center;justify-content:center;color:#a0a6b5;border:2px dashed var(--border);">
+          <div style="text-align:center;"><i class="fas fa-image" style="font-size:2rem;opacity:.4;"></i><p style="font-size:.8rem;margin-top:8px;">Belum ada preview</p></div>
+        </div>
+        <div id="thumbDebug" style="font-size:.75rem;color:#8a90a0;margin-top:6px;font-family:monospace;word-break:break-all;"></div>
+      </div>
+
       <button class="add-btn" onclick="addCard()"><i class="fas fa-plus-circle"></i> Generate Preview Card</button>
     </div>
   </div>
@@ -378,8 +388,18 @@ textarea{resize:vertical;min-height:90px}
     <div class="settings-grid">
       <div class="settings-card">
         <h3><i class="fas fa-sliders-h" style="color:var(--primary)"></i> General</h3>
-        <div class="setting-item"><div class="setting-info"><h4>Auto-redirect</h4><p>Skip branded redirect page</p></div><div class="toggle" id="toggleRedirect" onclick="toggleSetting(this,'autoRedirect')"></div></div>
-        <div class="setting-item"><div class="setting-info"><h4>Compact View</h4><p>Smaller cards</p></div><div class="toggle" id="toggleCompact" onclick="toggleSetting(this,'compactView')"></div></div>
+        <div class="setting-item">
+          <div class="setting-info"><h4>Buka di Tab Baru</h4><p>OFF = redirect di tab yang sama (default)</p></div>
+          <div class="toggle" id="toggleNewTab" onclick="toggleSetting(this,'openInNewTab')"></div>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info"><h4>Auto-redirect</h4><p>Skip branded redirect page</p></div>
+          <div class="toggle" id="toggleRedirect" onclick="toggleSetting(this,'autoRedirect')"></div>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info"><h4>Compact View</h4><p>Smaller cards</p></div>
+          <div class="toggle" id="toggleCompact" onclick="toggleSetting(this,'compactView')"></div>
+        </div>
       </div>
       <div class="settings-card">
         <h3><i class="fas fa-file-import" style="color:var(--primary)"></i> Import dari Code</h3>
@@ -445,28 +465,26 @@ textarea{resize:vertical;min-height:90px}
 let cards = [];
 let folders = [];
 let currentFilter = 'all';
-let currentFolder = 'all';        // 'all' or folder id
-let currentPage = 'dashboard';    // dashboard | add | grid | list | settings
-let currentView = 'grid';         // grid | list  (untuk halaman grid)
+let currentFolder = 'all';
+let currentPage = 'dashboard';
+let currentView = 'grid';
 let searchQuery = '';
 let pendingCardIdForFolder = null;
 let redirectTimer = null, targetUrl = '';
-let settings = {autoRedirect:false, compactView:false};
+let settings = {autoRedirect:false, compactView:false, openInNewTab:false};
 
 /* ================= INIT ================= */
 document.addEventListener('DOMContentLoaded', () => {
-  // safe load
   try { cards = JSON.parse(localStorage.getItem('mediaCards')||'[]'); } catch(e){ cards=[]; }
   try { folders = JSON.parse(localStorage.getItem('mediaFolders')||'[]'); } catch(e){ folders=[]; }
   try {
     const s = JSON.parse(localStorage.getItem('linkPreviewSettings')||'{}');
     settings.autoRedirect = !!s.autoRedirect;
     settings.compactView = !!s.compactView;
+    settings.openInNewTab = !!s.openInNewTab;
   } catch(e){}
-
   if (!Array.isArray(cards)) cards = [];
   if (!Array.isArray(folders)) folders = [];
-
   loadSettingsUI();
   refreshAllUI();
 });
@@ -496,10 +514,7 @@ function updatePageTitle(){
   };
   document.getElementById('pageTitle').textContent = titles[currentPage] || 'Dashboard';
 }
-
-function toggleSidebar(){
-  document.getElementById('sidebar').classList.toggle('collapsed');
-}
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('collapsed'); }
 function toggleMobileSidebar(){
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('mobileOverlay');
@@ -540,22 +555,16 @@ function renderFolders(){
       <i class="fas fa-times folder-del" onclick="event.stopPropagation(); deleteFolder('${f.id}')"></i>
     </div>`;
   }).join('');
-  // bind click secara programatik — tidak bergantung string matching
   list.querySelectorAll('.folder-item').forEach(el=>{
-    el.addEventListener('click', ()=>{
-      selectFolder(el.dataset.folderId);
-    });
+    el.addEventListener('click', ()=>selectFolder(el.dataset.folderId));
   });
 }
-
 function selectFolder(id){
   currentFolder = id;
   currentFilter = 'all';
-  // sync filter chips
   document.querySelectorAll('.filter-chip').forEach(b=>{
     b.classList.toggle('active', b.dataset.filter === 'all');
   });
-  // pindah ke grid page
   currentPage = 'grid';
   document.querySelectorAll('.menu-item').forEach(i=>{
     i.classList.toggle('active', i.dataset.page === 'grid');
@@ -568,7 +577,6 @@ function selectFolder(id){
   renderContentPages();
   closeMobileSidebar();
 }
-
 function openFolderModal(cardId=null){
   pendingCardIdForFolder = cardId;
   document.getElementById('folderModalTitle').textContent = cardId ? 'Pindahkan ke Folder' : 'Pilih Folder';
@@ -636,29 +644,34 @@ function populateFolderSelect(){
   if (current && folders.find(f=>f.id===current)) sel.value = current;
 }
 
-/* ================= THUMB ================= */
-function getThumbnail(url, platform, customThumb){
-  if (customThumb) return customThumb;
-  if (platform==='youtube'){
-    const id = extractYouTubeID(url);
-    if (id) return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
-  }
-  if (platform==='instagram'){
-    const sc = extractInstagramShortcode(url);
-    if (sc) return `https://www.ddinstagram.com/p/${sc}/media/?size=l`;
-  }
-  return null;
-}
+/* ================= THUMBNAIL ENGINE ================= */
+/*
+  Strategy:
+  - getThumbnailCandidates(url, platform, customThumb) -> array of URLs to try (ordered)
+  - renderThumbImg(candidates, platform, className) -> <img> dengan onerror berantai
+*/
+
 function extractYouTubeID(url){
   if (!url) return null;
-  const m = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
-  return (m && m[2].length===11) ? m[2] : null;
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
 }
 function extractInstagramShortcode(url){
   if (!url) return null;
-  const m = url.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
+  const m = url.match(/instagram\.com\/(?:p|reel|tv|share)\/([A-Za-z0-9_-]+)/);
   return m ? m[1] : null;
 }
+function extractTikTokID(url){
+  if (!url) return null;
+  const m = url.match(/tiktok\.com\/(?:@[^/]+\/video|v)\/(\d+)/);
+  return m ? m[1] : null;
+}
+function extractTweetID(url){
+  if (!url) return null;
+  const m = url.match(/(?:twitter|x)\.com\/(?:[^/]+)\/status\/(\d+)/);
+  return m ? m[1] : null;
+}
+
 function detectPlatform(url){
   if (!url) return 'other';
   if (url.includes('youtube.com')||url.includes('youtu.be')) return 'youtube';
@@ -666,6 +679,144 @@ function detectPlatform(url){
   if (url.includes('tiktok.com')) return 'tiktok';
   if (url.includes('twitter.com')||url.includes('x.com')) return 'twitter';
   return 'other';
+}
+
+function getThumbnailCandidates(url, platform, customThumb){
+  const out = [];
+  // 1. custom thumb dulu
+  if (customThumb) out.push(customThumb);
+  // 2. auto detect
+  if (platform==='youtube'){
+    const id = extractYouTubeID(url);
+    if (id){
+      out.push(`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`);
+      out.push(`https://i.ytimg.com/vi/${id}/sddefault.jpg`);
+      out.push(`https://i.ytimg.com/vi/${id}/hqdefault.jpg`);
+      out.push(`https://i.ytimg.com/vi/${id}/mqdefault.jpg`);
+      out.push(`https://img.youtube.com/vi/${id}/hqdefault.jpg`);
+    }
+  } else if (platform==='instagram'){
+    const sc = extractInstagramShortcode(url);
+    if (sc){
+      out.push(`https://www.ddinstagram.com/p/${sc}/media/?size=l`);
+      out.push(`https://www.ddinstagram.com/reel/${sc}/media/?size=l`);
+      out.push(`https://www.instagram.com/p/${sc}/media/?size=l`);
+      out.push(`https://imginn.com/p/${sc}/?__a=1`);
+    }
+    // fallback: layanan screenshot publik (butuh URL asli)
+    if (url) out.push(`https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&embed=screenshot.url`);
+  } else if (platform==='tiktok'){
+    const vid = extractTikTokID(url);
+    if (vid) out.push(`https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`);
+    if (url) out.push(`https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&embed=screenshot.url`);
+  } else if (platform==='twitter'){
+    const tid = extractTweetID(url);
+    if (tid) out.push(`https://react-tweet.vercel.app/api/tweet/${tid}`);
+    if (url) out.push(`https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&embed=screenshot.url`);
+  } else {
+    if (url) out.push(`https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&embed=screenshot.url`);
+  }
+  return out.filter(Boolean);
+}
+
+// Render <img> yang mencoba kandidat berurutan sampai ada yang berhasil
+function renderThumbImg(candidates, platform, className, fallbackIconHtml){
+  const fallbackIcons = {youtube:'fab fa-youtube',instagram:'fab fa-instagram',tiktok:'fab fa-tiktok',twitter:'fab fa-twitter',other:'fas fa-link'};
+  const icon = fallbackIcons[platform] || fallbackIcons.other;
+  const badge = platform ? platform.charAt(0).toUpperCase()+platform.slice(1) : 'Link';
+  const id = 'thumb_' + Math.random().toString(36).slice(2,9);
+  const dataAttr = encodeURIComponent(JSON.stringify(candidates));
+  // Kita pakai div berisi img + fallback; script inline akan mengganti src.
+  return `<div class="thumb-holder" id="${id}" data-candidates="${dataAttr}" data-idx="0" style="position:absolute;inset:0;">
+    <img class="${className}" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
+    <div class="thumbnail-fallback">
+      <i class="${icon}"></i>
+      <span>${badge}</span>
+    </div>
+    ${fallbackIconHtml||''}
+  </div>`;
+}
+
+// Setelah innerHTML dipasang, panggil ini untuk start loading gambar
+function activateThumbnails(root){
+  (root || document).querySelectorAll('.thumb-holder').forEach(holder=>{
+    if (holder.dataset.active) return;
+    holder.dataset.active = '1';
+    let candidates = [];
+    try { candidates = JSON.parse(decodeURIComponent(holder.dataset.candidates||'[]')); } catch(e){}
+    const img = holder.querySelector('img');
+    const fallback = holder.querySelector('.thumbnail-fallback');
+    if (!candidates.length){ return; }
+    let idx = 0;
+    function tryNext(){
+      if (idx >= candidates.length){
+        img.style.display='none';
+        fallback.style.display='flex';
+        return;
+      }
+      const url = candidates[idx++];
+      img.onload = ()=>{
+        img.style.display='block';
+        fallback.style.display='none';
+        holder.dataset.resolved = url;
+      };
+      img.onerror = ()=>{
+        tryNext();
+      };
+      // untuk oembed API (tiktok/twitter), respons berupa JSON bukan gambar
+      if (url.includes('/oembed') || url.includes('react-tweet')){
+        // fetch JSON, ambil thumbnail_url / avatar
+        fetch(url).then(r=>r.json()).then(data=>{
+          const t = data.thumbnail_url || data.thumbnail || (data.data && data.data.thumbnail_url);
+          if (t){
+            img.onload = ()=>{ img.style.display='block'; fallback.style.display='none'; holder.dataset.resolved = t; };
+            img.onerror = tryNext;
+            img.src = t;
+          } else {
+            tryNext();
+          }
+        }).catch(()=>tryNext());
+        return;
+      }
+      img.src = url;
+    }
+    tryNext();
+  });
+}
+
+function getThumbnail(url, platform, customThumb){
+  const c = getThumbnailCandidates(url, platform, customThumb);
+  return c.length ? c[0] : null;
+}
+
+/* Live preview di form */
+let previewTimer = null;
+function previewThumb(){
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(()=>{
+    const url = document.getElementById('urlInput').value.trim();
+    const custom = document.getElementById('thumbInput').value.trim();
+    const box = document.getElementById('thumbPreview');
+    const dbg = document.getElementById('thumbDebug');
+    if (!url && !custom){
+      box.innerHTML = `<div style="text-align:center;"><i class="fas fa-image" style="font-size:2rem;opacity:.4;"></i><p style="font-size:.8rem;margin-top:8px;">Belum ada preview</p></div>`;
+      dbg.textContent = '';
+      return;
+    }
+    const platform = detectPlatform(url);
+    const candidates = getThumbnailCandidates(url, platform, custom);
+    if (!candidates.length){
+      box.innerHTML = `<div style="text-align:center;"><i class="fas fa-image" style="font-size:2rem;opacity:.4;"></i><p style="font-size:.8rem;margin-top:8px;">Tidak ada kandidat thumbnail</p></div>`;
+      dbg.textContent = `platform: ${platform} — tidak ada kandidat`;
+      return;
+    }
+    box.innerHTML = renderThumbImg(candidates, platform, 'thumbnail');
+    // adjust style untuk preview box
+    const holder = box.querySelector('.thumb-holder');
+    if (holder){ holder.style.position='relative'; holder.style.height='100%'; }
+    activateThumbnails(box);
+    dbg.textContent = `platform: ${platform} | kandidat: ${candidates.length}`;
+  }, 350);
 }
 
 /* ================= RENDER CARD ================= */
@@ -678,20 +829,12 @@ function renderCard(card, view='grid'){
   const folderObj = card.folderId ? folders.find(f=>f.id===card.folderId) : null;
   const folderChip = folderObj ? `<div class="folder-chip"><i class="fas fa-folder"></i> ${escapeHtml(folderObj.name)}</div>` : '';
 
-  const fallbackIcons = {youtube:'fab fa-youtube',instagram:'fab fa-instagram',tiktok:'fab fa-tiktok',twitter:'fab fa-twitter',other:'fas fa-link'};
-  const fallbackIcon = fallbackIcons[card.platform]||fallbackIcons.other;
-
-  let thumbHtml;
-  if (card.thumbnail){
-    thumbHtml = `<img src="${card.thumbnail}" alt="" class="thumbnail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" loading="lazy">`;
-  } else {
-    thumbHtml = `<img alt="" class="thumbnail" style="display:none;">`;
-  }
-  const fallbackHtml = `<div class="thumbnail-fallback" style="${card.thumbnail?'display:none;':''}"><i class="${fallbackIcon}"></i><span>${platformBadge}</span></div>`;
+  const candidates = getThumbnailCandidates(card.url, card.platform, card.thumbnail || null);
+  const thumbHolder = renderThumbImg(candidates, card.platform, 'thumbnail', isVideo?'<div class="play-overlay"><i class="fas fa-play"></i></div>':'');
 
   if (view==='list'){
     return `<div class="list-item" onclick="goToRedirect('${safeUrl}')">
-      <div class="list-thumb-wrap">${thumbHtml}${fallbackHtml}</div>
+      <div class="list-thumb-wrap">${thumbHolder}</div>
       <div class="list-info">
         <div class="list-title">${escapeHtml(card.description)||'Untitled'}</div>
         <div class="list-meta">
@@ -714,8 +857,7 @@ function renderCard(card, view='grid'){
     ${folderChip}
     <div class="card-badge ${card.platform}">${platformBadge}</div>
     <div class="thumbnail-container">
-      ${thumbHtml}${fallbackHtml}
-      ${isVideo?'<div class="play-overlay"><i class="fas fa-play"></i></div>':''}
+      ${thumbHolder}
     </div>
     <div class="card-content">
       <div class="card-title">${escapeHtml(card.description)||'Untitled Content'}</div>
@@ -758,24 +900,19 @@ function getFilteredCards(){
   }
   return list;
 }
-
 function filterCards(filter, el){
   currentFilter = filter;
-  // sync semua filter bar
   document.querySelectorAll('.filter-chip').forEach(b=>{
     b.classList.toggle('active', b.dataset.filter === filter);
   });
   renderContentPages();
 }
-
 function onSearch(){
   searchQuery = document.getElementById('searchInput').value.trim();
   renderContentPages();
 }
-
 function switchView(view, el){
   currentView = view;
-  // pindah page sesuai view
   currentPage = (view==='grid') ? 'grid' : 'list';
   document.querySelectorAll('.menu-item').forEach(i=>{
     i.classList.toggle('active', i.dataset.page === currentPage);
@@ -783,7 +920,6 @@ function switchView(view, el){
   document.querySelectorAll('.page').forEach(p=>{
     p.classList.toggle('active', p.id === 'page-'+currentPage);
   });
-  // sync view toggle buttons
   document.querySelectorAll('.view-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.view === view);
   });
@@ -791,33 +927,32 @@ function switchView(view, el){
   renderContentPages();
 }
 
-/* ================= RENDER KONTEN (grid & list) ================= */
+/* ================= RENDER CONTENT ================= */
 function renderContentPages(){
   const filtered = getFilteredCards();
 
-  // GRID page
   const gridC = document.getElementById('gridContainer');
   const gridE = document.getElementById('gridEmpty');
   if (filtered.length){
     gridC.innerHTML = filtered.map(c=>renderCard(c,'grid')).join('');
     gridE.style.display='none';
+    activateThumbnails(gridC);
   } else {
     gridC.innerHTML='';
     gridE.style.display='block';
   }
 
-  // LIST page
   const listC = document.getElementById('listContainer');
   const listE = document.getElementById('listEmpty');
   if (filtered.length){
     listC.innerHTML = filtered.map(c=>renderCard(c,'list')).join('');
     listE.style.display='none';
+    activateThumbnails(listC);
   } else {
     listC.innerHTML='';
     listE.style.display='block';
   }
 
-  // folder label
   const lbl = document.getElementById('activeFolderLabel');
   if (lbl){
     if (currentFolder!=='all'){
@@ -840,6 +975,7 @@ function renderDashboardRecent(){
     container.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:40px;"><i class="fas fa-plus-circle"></i><h2>No links yet</h2><p>Add your first link to see it here</p></div>`;
   } else {
     container.innerHTML = recent.map(c=>renderCard(c,'grid')).join('');
+    activateThumbnails(container);
   }
 }
 
@@ -851,7 +987,6 @@ function setTemplate(t, el){
   input.value = (t==='CUSTOM') ? '' : t;
   if (t==='CUSTOM') input.focus();
 }
-
 function addCard(){
   let url = document.getElementById('urlInput').value.trim();
   const template = document.getElementById('templateInput').value.trim() || 'LINK -> OTHER';
@@ -883,7 +1018,6 @@ function addCard(){
   showToast('Link berhasil ditambahkan!');
   navigateTo('grid');
 }
-
 function deleteCard(id){
   if (!confirm('Hapus link ini?')) return;
   cards = cards.filter(c=>c.id!==id);
@@ -891,7 +1025,6 @@ function deleteCard(id){
   refreshAllUI();
   showToast('Link dihapus');
 }
-
 function clearForm(){
   ['urlInput','descInput','tagsInput','thumbInput'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('templateInput').value='VIDEO -> JAPAN';
@@ -899,6 +1032,10 @@ function clearForm(){
   document.querySelectorAll('.template-btn').forEach(b=>b.classList.remove('active'));
   const first = document.querySelector('.template-btn');
   if (first) first.classList.add('active');
+  const box = document.getElementById('thumbPreview');
+  if (box) box.innerHTML = `<div style="text-align:center;"><i class="fas fa-image" style="font-size:2rem;opacity:.4;"></i><p style="font-size:.8rem;margin-top:8px;">Belum ada preview</p></div>`;
+  const dbg = document.getElementById('thumbDebug');
+  if (dbg) dbg.textContent='';
 }
 
 /* ================= STATS ================= */
@@ -918,7 +1055,8 @@ function updateBadge(){
 function goToRedirect(url){
   if (!url) return;
   if (settings.autoRedirect){
-    window.open(url,'_blank','noopener');
+    if (settings.openInNewTab) window.open(url,'_blank','noopener');
+    else window.location.href = url;
     return;
   }
   targetUrl = url;
@@ -928,16 +1066,24 @@ function goToRedirect(url){
   pb.classList.remove('animating'); void pb.offsetWidth; pb.classList.add('animating');
   ov.classList.add('active');
   redirectTimer = setTimeout(()=>{
-    const w = window.open(targetUrl,'_blank','noopener');
-    if (!w) window.location.href = targetUrl;
+    if (settings.openInNewTab){
+      const w = window.open(targetUrl,'_blank','noopener');
+      if (!w) window.location.href = targetUrl;
+    } else {
+      window.location.href = targetUrl;
+    }
     ov.classList.remove('active');
   }, 2000);
 }
 function skipRedirect(){
   if (redirectTimer) clearTimeout(redirectTimer);
   if (targetUrl){
-    const w = window.open(targetUrl,'_blank','noopener');
-    if (!w) window.location.href = targetUrl;
+    if (settings.openInNewTab){
+      const w = window.open(targetUrl,'_blank','noopener');
+      if (!w) window.location.href = targetUrl;
+    } else {
+      window.location.href = targetUrl;
+    }
   }
   document.getElementById('redirectOverlay').classList.remove('active');
 }
@@ -955,20 +1101,12 @@ function unpackCards(arr){
     tags: a[3] ? a[3].split('|').filter(Boolean) : [],
     platform: a[4] || detectPlatform(a[0]||''),
     folderId: a[5] || undefined,
-    thumbnail: getThumbnail(a[0], a[4] || detectPlatform(a[0]||''), null),
+    thumbnail: null, // regenerate at render time
     date: a[6] || new Date().toLocaleDateString()
   }));
 }
-
-// RLE ringan
-function compressRLE(str){
-  return str.replace(/(.)\1{2,}/g, (m,ch)=>ch+'\u0001'+m.length);
-}
-function decompressRLE(str){
-  return str.replace(/(.)\u0001(\d+)/g, (m,ch,n)=>ch.repeat(+n));
-}
-
-// base64url tanpa unescape/escape (pakai TextEncoder aman untuk Unicode)
+function compressRLE(str){ return str.replace(/(.)\1{2,}/g, (m,ch)=>ch+'\u0001'+m.length); }
+function decompressRLE(str){ return str.replace(/(.)\u0001(\d+)/g, (m,ch,n)=>ch.repeat(+n)); }
 function b64urlEncode(str){
   const bytes = new TextEncoder().encode(str);
   let bin = '';
@@ -983,7 +1121,6 @@ function b64urlDecode(str){
   for (let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
   return new TextDecoder().decode(bytes);
 }
-
 function generateShareCode(){
   if (!cards.length){ showToast('Belum ada link untuk dibagikan!', 'error'); return; }
   try {
@@ -995,7 +1132,6 @@ function generateShareCode(){
     showToast('Share code dibuat!');
   } catch(e){ showToast('Gagal generate code', 'error'); console.error(e); }
 }
-
 function copyShareCode(){
   const input = document.getElementById('shareCodeOutput');
   if (!input.value) return;
@@ -1008,12 +1144,10 @@ function copyShareCode(){
     setTimeout(()=>{ btn.innerHTML=orig; btn.classList.remove('copied'); }, 1800);
     showToast('Kode disalin!');
   }).catch(()=>{
-    // fallback lama
     document.execCommand('copy');
     showToast('Kode disalin!');
   });
 }
-
 function importFromCode(){
   let code = document.getElementById('importCodeInput').value.trim();
   if (!code){ showToast('Paste kode dulu!', 'error'); return; }
@@ -1032,7 +1166,7 @@ function importFromCode(){
         tags: item.g || item.tags || [],
         platform: item.p || item.platform || detectPlatform(item.u||item.url||''),
         folderId: item.f || item.folderId,
-        thumbnail: getThumbnail(item.u||item.url, item.p||item.platform||'', null),
+        thumbnail: null,
         date: item.dt || item.date || new Date().toLocaleDateString()
       }));
     } else if (data && data.c){
@@ -1089,6 +1223,7 @@ function importFromFile(input){
 function loadSettingsUI(){
   if (settings.autoRedirect) document.getElementById('toggleRedirect')?.classList.add('active');
   if (settings.compactView) document.getElementById('toggleCompact')?.classList.add('active');
+  if (settings.openInNewTab) document.getElementById('toggleNewTab')?.classList.add('active');
   document.body.classList.toggle('compact', !!settings.compactView);
 }
 function toggleSetting(el, key){
@@ -1109,9 +1244,7 @@ function clearAllData(){
 }
 
 /* ================= UTILS ================= */
-function saveCards(){
-  localStorage.setItem('mediaCards', JSON.stringify(cards));
-}
+function saveCards(){ localStorage.setItem('mediaCards', JSON.stringify(cards)); }
 function escapeHtml(text){
   if (text==null) return '';
   const d = document.createElement('div');
@@ -1138,7 +1271,6 @@ document.addEventListener('keydown', (e)=>{
 </script>
 
 <style>
-/* compact mode */
 body.compact .card-content{padding:14px}
 body.compact .card-description{margin:8px 0;-webkit-line-clamp:1}
 body.compact .card-meta{display:none}
